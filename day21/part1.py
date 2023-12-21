@@ -11,7 +11,7 @@ from tqdm import tqdm  # type: ignore[import-untyped]
 
 from graph import Point
 
-_inf = 999999999999999999999999  # basically infinity.
+_inf = 999999999999999999999999999999999999999  # basically infinity.
 
 MAX_STEPS = 64
 
@@ -26,18 +26,17 @@ class Type(Enum):
 class Cell:
     pt: Point
     contents: Type
-    dists: set[int] = field(default_factory=set)
+    done: bool = False
+    min_dist: int = _inf
 
     def __post_init__(self):
         """Post init."""
+        if self.contents == Type.ROCK:
+            self.done = True
         if self.contents == Type.START:
             # We start here;
             # cost to get here is 0
-            self.dists.add(0)
-
-    @property
-    def min_dist(self) -> int:
-        return min(self.dists)
+            self._dists.add(0)
 
     @property
     def row(self) -> int:
@@ -59,7 +58,9 @@ class Cell:
 
     def reachable_in(self, steps=MAX_STEPS) -> bool:
         """Can you reach this cell in *precisely* N steps?"""
-        return steps in self.dists
+        if steps < self.min_dist:
+            return False
+        return ((steps - self.min_dist) % 2) == 0
 
     def consider(self, dist: int) -> bool:
         """Go to this node from a neighbor, possibly setting a new distance.
@@ -69,9 +70,9 @@ class Cell:
         """
         if self.contents == Type.ROCK:
             return False
-        if dist in self.dists:
+        if dist >= self.min_dist:
             return False
-        self.dists.add(dist)
+        self.min_dist = dist
         return True
 
     @property
@@ -124,9 +125,12 @@ class Map:
                     return Point(i, j)
         raise ValueError("no start point in grid")
 
-    def valid(self, pt: Point) -> bool:
-        """Is this point valid?"""
-        return pt.valid(max_row=self.max_row, max_col=self.max_col)
+    def wrap(self, pt: Point) -> Point:
+        """Wrap this point around."""
+        return Point(
+            row=pt.row % self.height,
+            col=pt.col % self.width,
+        )
 
     def visit(self, pt: Point, cost: int) -> None:
         """Visit a point w/ the given cost."""
@@ -135,8 +139,7 @@ class Map:
         if cost > MAX_STEPS:
             return
         for neighbor_pt in cell.neighbors:
-            if not self.valid(neighbor_pt):
-                continue
+            neighbor_pt = self.wrap(neighbor_pt)
             neighbor_cell = self.grid[neighbor_pt.row][neighbor_pt.col]
             if neighbor_cell.contents == Type.ROCK:
                 continue
@@ -182,16 +185,6 @@ class Map:
             out.append("".join(out_row))
         print("\n".join(out))
 
-    def costprint(self) -> None:
-        """Print map, using cost for cells."""
-
-        def cell_cost(cell: Cell) -> str:
-            if cell.dists:
-                return str(min(cell.dists))
-            return cell.contents.value
-
-        self._print_rows_by_cellfunc(cell_cost)
-
     def count_reachable(self) -> int:
         """Count number of reachable cells."""
         self.walk()
@@ -210,7 +203,7 @@ def parse_file(filename: str) -> int:
     # This is kinda ugly but. I don't care.
     if "sample_input" in filename:
         global MAX_STEPS
-        MAX_STEPS = 6
+        MAX_STEPS = 10
     m = Map()
     with open(filename) as f:
         for line in f:

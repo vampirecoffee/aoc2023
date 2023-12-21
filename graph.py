@@ -51,6 +51,15 @@ class Point:
         """Distance between two points."""
         return Edge(self, other).distance()
 
+    def neighbors(self) -> list[Point]:
+        """Return all of this point's neighbors (up/down/left/right)."""
+        return [
+            Point(self.row - 1, self.col),
+            Point(self.row + 1, self.col),
+            Point(self.row, self.col - 1),
+            Point(self.row, self.col + 1),
+        ]
+
 
 @dataclass(frozen=True)
 class Edge:
