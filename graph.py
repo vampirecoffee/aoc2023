@@ -29,14 +29,14 @@ class Point:
         elif direction == Dir.DOWN:
             return Point(self.row + n, self.col)
 
-    def valid(self, max_height: int, max_width: int) -> bool:
-        """Is this point valid for a graph with the given max height+width?"""
+    def valid(self, max_row: int, max_col: int) -> bool:
+        """Is this point valid for a graph with the given max_row+max_col?"""
         return all(
             (
                 self.row >= 0,
-                self.row <= max_height,
+                self.row <= max_row,
                 self.col >= 0,
-                self.col <= max_height,
+                self.col <= max_col,
             )
         )
 
