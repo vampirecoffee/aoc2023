@@ -45,24 +45,56 @@ class Point:
 
         Used for shoelace theorem stuff.
         """
-        return (self.row * other.col) - (self.col * other.row)
+        return Edge(self, other).determinant()
 
     def distance(self, other: Point) -> float:
         """Distance between two points."""
-        row_diff_squared = (self.row - other.row) ** 2
-        col_diff_squared = (self.col - other.col) ** 2
+        return Edge(self, other).distance()
+
+
+@dataclass(frozen=True)
+class Edge:
+    p1: Point
+    p2: Point
+
+    def determinant(self) -> int:
+        """Determinant of an edge.
+
+        Used in the shoelace theorem.
+        """
+        return (self.p1.col * self.p2.row) - (self.p1.row * self.p2.col)
+
+    def distance(self) -> float:
+        """Length of this edge."""
+        row_diff_squared = (self.p1.row - self.p2.row) ** 2
+        col_diff_squared = (self.p1.col - self.p2.col) ** 2
         return math.sqrt(row_diff_squared + col_diff_squared)
 
+    def integer_points(self) -> int:
+        """How many integer points are along this edge?
 
-def edges(polygon: list[Point]) -> list[tuple[Point, Point]]:
+        This includes the start point but not the end point.
+        """
+        row_diff = abs(self.p1.row - self.p2.row)
+        col_diff = abs(self.p1.col - self.p2.col)
+        return math.gcd(row_diff, col_diff)
+
+
+def get_edges(polygon: list[Point]) -> list[Edge]:
     """Given a list of points in the polygon, get a list of edges."""
-    polygon = polygon + [polygon[0]]
-    return [(polygon[i], polygon[i + 1]) for i in range(len(polygon) - 1)]
+    start_point = polygon[0]
+    start_to_start = polygon + [start_point]
+    out: list[Edge] = [
+        Edge(start_to_start[i], start_to_start[i + 1]) for i in range(len(polygon))
+    ]
+    assert len(out) == len(polygon)
+    return out
 
 
 def enclosed_area(polygon: list[Point]) -> float:
     """Find the enclosed area of this polygon."""
-    matrix_sum = sum(p1.determinant(p2) for p1, p2 in edges(polygon))
+    edges = get_edges(polygon)
+    matrix_sum = sum(e.determinant() for e in edges)
     # The original formula is only valid going in one direction,
     # and produces a negative result in the other.
     # We could determine which way is counterclockwise ...
@@ -78,10 +110,11 @@ def count_enclosed_points(polygon: list[Point]) -> int:
     See: Pick's theorem.
     """
     area = enclosed_area(polygon)
-    boundary_points = len(polygon)
+    edges = get_edges(polygon)
+    boundary_points = sum(e.integer_points() for e in edges)
     return int(area + 1 - (boundary_points / 2))
 
 
 def perimeter(polygon: list[Point]) -> float:
     """Find the length of the perimeter of a polygon."""
-    return sum(p1.distance(p2) for p1, p2 in edges(polygon))
+    return sum(e.distance() for e in get_edges(polygon))

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 from dataclasses import dataclass
 import re
-from graph import Dir, Point, enclosed_area, perimeter
+from graph import Dir, Point, count_enclosed_points, perimeter
 
 
 @dataclass(frozen=True)
@@ -21,7 +22,7 @@ class RGB:
         return RGB(red, green, blue)
 
 
-_instr_re = re.compile(r"(\w) (\d) \(#(......)\)")
+_instr_re = re.compile(r"(\w) (\d+) \(#(......)\)")
 
 
 @dataclass(frozen=True)
@@ -46,21 +47,43 @@ class Instruction:
         """Follow this instruction, starting from start_point."""
         return start_point.go(self.direction, n=self.n)
 
+    def mark_grid(self, grid: list[list[str]], start_point: Point) -> list[list[str]]:
+        """Follow this instruction, marking each square in the grid."""
+        grid[start_point.row][start_point.col] = "#"
+        at_point = start_point
+        for _ in range(self.n):
+            step_point = at_point.go(self.direction)
+            grid[step_point.row][step_point.col] = "#"
+            at_point = step_point
 
-def follow_dig_plan(plan: list[Instruction]) -> list[Point]:
+        return grid
+
+
+def follow_dig_plan(plan: list[Instruction], debug=False) -> list[Point]:
     """Follow the dig plan and return a list of points in the polygon."""
+    if debug:
+        grid_row = ["."] * 7
+        grid: list[list[str]] = []
+        for _ in range(10):
+            grid.append(deepcopy(grid_row))
+
     p = Point(0, 0)
     polygon = [p]
     for instr in plan:
         new_point = instr.follow(p)
+        if debug:
+            grid = instr.mark_grid(grid, p)
         polygon.append(new_point)
         p = new_point
+    if debug:
+        pretty_grid = "\n".join("".join(char for char in row) for row in grid)
+        print(pretty_grid)
     return polygon
 
 
 def lagoon_size(polygon: list[Point]) -> int:
     """Find the size of our lagoon."""
-    enclosed = enclosed_area(polygon)
+    enclosed = count_enclosed_points(polygon)
     perim = perimeter(polygon)
     return int(enclosed) + int(perim)
 
