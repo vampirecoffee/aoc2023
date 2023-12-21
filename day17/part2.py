@@ -124,7 +124,13 @@ class City:
         if new_row >= self.height or new_col >= self.width:
             return None
         new_cost = cost + self.grid[new_row][new_col]
-        if new_row == self.end_row and new_col == self.end_col:
+        if all(
+            (
+                new_row == self.end_row,
+                new_col == self.end_col,
+                state.distance >= 4,
+            )
+        ):
             print("the end!", new_cost)
             return new_cost
         new_state = State(new_row, new_col, state.going, state.distance)
@@ -146,12 +152,14 @@ class City:
             next_states = self.state_queues_by_cost.pop(cur_cost)
 
             for state in next_states:
-                turn_a, turn_b = state.going.turns()
-                bonus_states = [
-                    State(state.row, state.col, turn_dir, 1)
-                    for turn_dir in (turn_a, turn_b)
-                ]
-                if state.distance < 3:
+                bonus_states: list[State] = []
+                if state.distance >= 4:
+                    turn_a, turn_b = state.going.turns()
+                    bonus_states += [
+                        State(state.row, state.col, turn_dir, 1)
+                        for turn_dir in (turn_a, turn_b)
+                    ]
+                if state.distance < 10:
                     bonus_states.append(
                         State(state.row, state.col, state.going, state.distance + 1),
                     )
