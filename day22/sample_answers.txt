@@ -1,0 +1,4 @@
+Sample input (no suffix) should have 5 to drop (b,c,d,e,g)
+Sample input 2 should have 3 (b,c,d)
+Sample input 3 should have 2 (a,c)
+Sample input 4 should have 2 (b,d)
