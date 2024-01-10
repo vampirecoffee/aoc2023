@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import math
 from enum import Enum
 
+import numpy  # type: ignore[import-not-found]
+
 
 class Dir(Enum):
     LEFT = "L"
@@ -17,6 +19,14 @@ class Dir(Enum):
 class Point:
     row: int
     col: int
+
+    @property
+    def x(self) -> int:
+        return self.col
+
+    @property
+    def y(self) -> int:
+        return self.row
 
     def go(self, direction: Dir, n=1) -> Point:
         """From this point, go in a direction."""
@@ -87,6 +97,47 @@ class Edge:
         row_diff = abs(self.p1.row - self.p2.row)
         col_diff = abs(self.p1.col - self.p2.col)
         return math.gcd(row_diff, col_diff)
+
+    def collinear_with(self, point: Point) -> bool:
+        """Is this point collinear with this edge?"""
+        matrix = [
+            [self.p1.row, self.p1.col],
+            [self.p2.row, self.p2.col],
+            [point.row, point.col],
+        ]
+        return numpy.linalg.matrix_rank(matrix) <= 1
+
+    def intersects(self, other: Edge) -> bool:
+        """Does this edge intersect with the other one?"""
+        # Math!
+        # This is the denominator used to calculate the intersection coordinates
+        denom = (self.p1.x - self.p2.x) * (other.p1.y - other.p2.y) - (
+            self.p1.y - self.p2.y
+        ) * (other.p1.x - other.p2.x)
+        # If it's 0, the lines are parallel
+        return denom != 0
+
+    def intersection_point(self, other: Edge) -> tuple[float, float]:
+        """Return the point where these two lines intersect.
+
+        This is returned as x,y coords - flip them around for row,col.
+        """
+        denom = (self.p1.x - self.p2.x) * (other.p1.y - other.p2.y) - (
+            self.p1.y - self.p2.y
+        ) * (other.p1.x - other.p2.x)
+        x_num = (
+            (self.p1.x * self.p2.y - self.p1.y * self.p2.x) * (other.p1.x - other.p2.x)
+        ) - (
+            (self.p1.x - self.p2.x)
+            * (other.p1.x * other.p2.y - other.p1.y * other.p2.x)
+        )
+        y_num = (
+            (self.p1.x * self.p2.y - self.p1.y * self.p2.x) * (other.p1.y - other.p2.y)
+        ) - (
+            (self.p1.y - self.p2.y)
+            * (other.p1.x * other.p2.y - other.p1.y * other.p1.x)
+        )
+        return x_num / denom, y_num / denom
 
 
 def get_edges(polygon: list[Point]) -> list[Edge]:
