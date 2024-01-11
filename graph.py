@@ -14,6 +14,17 @@ class Dir(Enum):
     UP = "U"
     DOWN = "D"
 
+    def reverse(self) -> Dir:
+        if self == Dir.LEFT:
+            return Dir.RIGHT
+        if self == Dir.RIGHT:
+            return Dir.LEFT
+        if self == Dir.UP:
+            return Dir.DOWN
+        if self == Dir.DOWN:
+            return Dir.UP
+        raise RuntimeError("you forgot a case")
+
 
 @dataclass(frozen=True)
 class Point:

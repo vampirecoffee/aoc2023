@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from functools import cache
+from collections import deque, defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 import sys
@@ -172,25 +173,91 @@ class Map:
             self.print_path(set(best_path))
         return cost
 
+    def find_nodes(self) -> defaultdict[Point, list[tuple[Point, int]]]:
+        """Find coordinates where you can take different paths
+        and the distance between each node.
+
+        shout out to:
+        https://www.reddit.com/r/adventofcode/comments/18oy4pc/comment/keob34r/?utm_source=reddit&utm_medium=web2x&context=3
+        """
+        explored: set[tuple[Point, Dir]] = set()
+        nodes: defaultdict[Point, list[tuple[Point, int]]] = defaultdict(list)
+        start_point = self.start_point
+        end_point = self.end_point
+        queue = deque(
+            [
+                (start_point, Dir.DOWN),
+            ]
+        )
+        while len(queue) > 0:
+            from_node, cur_dir = queue.pop()
+            if (from_node, cur_dir) in explored:
+                continue
+            explored.add((from_node, cur_dir))
+            cur_pos = from_node
+            steps = 0
+            while True:
+                steps += 1
+                cur_pos = cur_pos.go(cur_dir)
+                next_dirs = set(Dir)
+                next_dirs.remove(cur_dir.reverse())
+                bad_dirs: set[Dir] = set()
+                for new_dir in next_dirs:
+                    if not self.is_valid(cur_pos.go(new_dir)):
+                        bad_dirs.add(new_dir)
+                next_dirs -= bad_dirs
+                if len(next_dirs) > 1 or cur_pos == end_point:
+                    to_node = cur_pos
+                    nodes[from_node].append((to_node, steps))
+                    nodes[to_node].append((from_node, steps))
+                    explored.add((to_node, cur_dir.reverse()))
+                    for new_dir in next_dirs:
+                        if (to_node, new_dir) not in explored:
+                            queue.append((to_node, new_dir))
+                    break
+                cur_dir = list(next_dirs)[0]
+        return nodes
+
     def take_a_hike(self, debug=False) -> int:
         """Take a hike and return the longest path."""
         cache: dict[CacheKey, int] = {}
         longest_path = -1
         visited = set()
-        visited.add(self.start_point)
+        start_point = self.start_point
+        end_point = self.end_point
+        visited.add(start_point)
         state = State(
-            self.start_point,
+            start_point,
             0,
             frozenset(visited),
         )
-        queue = [state]
-        while len(queue) > 0:
-            state = queue.pop()
-            if state.at == end:
-                if state.cost > longest_path:
-                    print(state.cost)
-                    longest_path = state.cost
-                continue
+        nodes = self.find_nodes()
+        queue = deque([state])
+        with tqdm(total=1) as pbar:
+            while len(queue) > 0:
+                state = queue.popleft()
+                if state.at == end_point:
+                    if state.cost > longest_path:
+                        longest_path = state.cost
+                    pbar.update(1)
+                    continue
+                if cache.get(CacheKey(state.at, state.visited), -1) >= state.cost:
+                    pbar.update(1)
+                    continue  # we already have the same or longer path
+                cache[CacheKey(state.at, state.visited)] = state.cost
+                new_visited: frozenset[Point] = frozenset(
+                    state.visited | set([state.at])
+                )
+                for next_node, steps_to_node in nodes[state.at]:
+                    if next_node in new_visited:
+                        continue
+                    new_steps = state.cost + steps_to_node
+                    if cache.get(CacheKey(next_node, new_visited), -1) >= new_steps:
+                        continue  # we already have the same or longer path
+                    queue.append(State(next_node, new_steps, new_visited))
+                    pbar.total += 1
+                pbar.update(1)
+        return longest_path
 
     def print_path(self, path: set[Point]) -> None:
         """Print the path taken."""
