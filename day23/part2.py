@@ -37,6 +37,19 @@ class Tile(Enum):
         return self != Tile.FOREST
 
 
+@dataclass(frozen=True)
+class State:
+    at: Point
+    cost: int
+    visited: frozenset[Point]
+
+
+@dataclass(frozen=True)
+class CacheKey:
+    at: Point
+    visited: frozenset[Point]
+
+
 @dataclass
 class Map:
     """Map. It has tiles."""
@@ -142,7 +155,7 @@ class Map:
                 max_cost = neighbor_cost
         return max_cost, best_path
 
-    def take_a_hike(self, debug=False) -> int:
+    def old_take_a_hike(self, debug=False) -> int:
         """Take a hike and return the longest path."""
         path = frozenset([self.start_point])
         tiles_as_tuple = tuple(tuple(t for t in row) for row in self.tiles)
@@ -158,6 +171,26 @@ class Map:
         if debug:
             self.print_path(set(best_path))
         return cost
+
+    def take_a_hike(self, debug=False) -> int:
+        """Take a hike and return the longest path."""
+        cache: dict[CacheKey, int] = {}
+        longest_path = -1
+        visited = set()
+        visited.add(self.start_point)
+        state = State(
+            self.start_point,
+            0,
+            frozenset(visited),
+        )
+        queue = [state]
+        while len(queue) > 0:
+            state = queue.pop()
+            if state.at == end:
+                if state.cost > longest_path:
+                    print(state.cost)
+                    longest_path = state.cost
+                continue
 
     def print_path(self, path: set[Point]) -> None:
         """Print the path taken."""
