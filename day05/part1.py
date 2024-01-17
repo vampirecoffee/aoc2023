@@ -1,12 +1,11 @@
 """Solution for part 1 of day 05."""
 from __future__ import annotations
 
-from copy import deepcopy
 import argparse
-import string
-from collections import defaultdict
-from dataclasses import dataclass, field
 import re
+import string
+from copy import deepcopy
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -42,6 +41,7 @@ class MapRange:
 
     @property
     def source_end(self) -> int:
+        """Return the last 'source' number in this range."""
         return self.src_start + self.length - 1
 
 
@@ -107,6 +107,7 @@ class Almanac:
         return cur
 
     def lowest_location(self) -> int:
+        """Return the lowest location that we can get from this set of seeds."""
         return min(self.seed_to_location(s) for s in self.seeds)
 
 

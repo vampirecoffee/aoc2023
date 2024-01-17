@@ -1,14 +1,18 @@
+"""Part 1 of solution for Day 18."""
 from __future__ import annotations
 
 import argparse
+import re
 from copy import deepcopy
 from dataclasses import dataclass
-import re
-from graph import Dir, Point, count_enclosed_points, perimeter
+
+from aoc_tools.graph import Dir, Point, count_enclosed_points, perimeter
 
 
 @dataclass(frozen=True)
 class RGB:
+    """RGB color."""
+
     red: int
     green: int
     blue: int
@@ -27,6 +31,8 @@ _instr_re = re.compile(r"(\w) (\d+) \(#(......)\)")
 
 @dataclass(frozen=True)
 class Instruction:
+    """One 'instruction' on what direction / how far / what color to dig."""
+
     direction: Dir
     n: int
     color: RGB

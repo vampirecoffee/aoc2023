@@ -15,13 +15,15 @@ def card_beats(first_card: str, second_card: str) -> bool:
 
 
 class HandType(Enum):
-    high_card = 0
-    one_pair = 10
-    two_pair = 20
-    three = 30  # 3 of a kind
-    full_house = 35
-    four = 40
-    five = 50
+    """The type of a hand in a game of CamelCards."""
+
+    HIGH_CARD = 0
+    ONE_PAIR = 10
+    TWO_PAIR = 20
+    THREE = 30  # 3 of a kind
+    FULL_HOUSE = 35
+    FOUR = 40
+    FIVE = 50
 
     def beats(self, other: HandType) -> bool:
         """Does this card beat the other one?"""
@@ -30,6 +32,8 @@ class HandType(Enum):
 
 @dataclass
 class Hand:
+    """One hand in a game of CamelCards, with accompanying bid."""
+
     cards: str
     bid: int = 0
 
@@ -44,7 +48,7 @@ class Hand:
         return cls(cards=cards, bid=bid)
 
     @property
-    def hand_type(self) -> HandType:
+    def hand_type(self) -> HandType:  # pylint: disable=too-many-return-statements
         """What type of hand is this?"""
         card_count: defaultdict[str, int] = defaultdict(int)
         for c in self.cards:
@@ -52,21 +56,18 @@ class Hand:
         # What is the highest number of 'same cards'?
         mostest = max(card_count.values())
         if mostest == 5:
-            return HandType.five
-        elif mostest == 4:
-            return HandType.four
-        elif mostest == 3:
+            return HandType.FIVE
+        if mostest == 4:
+            return HandType.FOUR
+        if mostest == 3:
             if sorted(list(card_count.values())) == [2, 3]:
-                return HandType.full_house
-            else:
-                return HandType.three
-        elif mostest == 2:
+                return HandType.FULL_HOUSE
+            return HandType.THREE
+        if mostest == 2:
             if sorted(list(card_count.values())) == [1, 2, 2]:
-                return HandType.two_pair
-            else:
-                return HandType.one_pair
-        else:
-            return HandType.high_card
+                return HandType.TWO_PAIR
+            return HandType.ONE_PAIR
+        return HandType.HIGH_CARD
 
     def beats(self, other: Hand) -> bool:
         """Does this hand beat Other?"""

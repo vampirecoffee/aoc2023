@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
-red_re = re.compile("(\d+) red")
-green_re = re.compile("(\d+) green")
-blue_re = re.compile("(\d+) blue")
+red_re = re.compile(r"(\d+) red")
+green_re = re.compile(r"(\d+) green")
+blue_re = re.compile(r"(\d+) blue")
 
 
 def _count_from_re(r: re.Pattern, s: str) -> int:
@@ -20,6 +20,8 @@ def _count_from_re(r: re.Pattern, s: str) -> int:
 
 @dataclass
 class Round:
+    """One round of the game."""
+
     red: int
     green: int
     blue: int
@@ -77,6 +79,7 @@ class Game:
 
 
 def sum_game_powers_in_file(filename: str) -> int:
+    """Sum up the 'power' of all games in the file."""
     sum_game_powers = 0
     with open(filename, encoding="utf-8") as f:
         for line in f:

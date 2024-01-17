@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
+from functools import cached_property
+from typing import Iterable
+import itertools
 import math
 from enum import Enum
 
-import numpy  # type: ignore[import-not-found]
+import numpy
 
 
 class Dir(Enum):
@@ -38,6 +41,11 @@ class Point:
     @property
     def y(self) -> int:
         return self.row
+
+    @classmethod
+    def from_xy(cls, x: int, y: int) -> Point:
+        """Create a point from x,y coordinates."""
+        return cls(row=y, col=x)
 
     def go(self, direction: Dir, n=1) -> Point:
         """From this point, go in a direction."""
@@ -131,7 +139,7 @@ class Edge:
     def intersection_point(self, other: Edge) -> tuple[float, float]:
         """Return the point where these two lines intersect.
 
-        This is returned as x,y coords - flip them around for row,col.
+        This is returned as row,col coords - flip them around for x,y.
         """
         denom = (self.p1.x - self.p2.x) * (other.p1.y - other.p2.y) - (
             self.p1.y - self.p2.y
@@ -148,7 +156,59 @@ class Edge:
             (self.p1.y - self.p2.y)
             * (other.p1.x * other.p2.y - other.p1.y * other.p1.x)
         )
-        return x_num / denom, y_num / denom
+        return y_num / denom, x_num / denom
+
+
+@dataclass(frozen=True)
+class Polygon:
+    points: tuple[Point, ...]
+
+    @classmethod
+    def from_points(cls, points: Iterable[Point]) -> Polygon:
+        """Create a polygon from any iterable of points."""
+        point_tuple = tuple(p for p in points)
+        return cls(point_tuple)
+
+    @cached_property
+    def _point_list(self) -> list[Point]:
+        """Return points as a list."""
+        return [e for e in self.points]
+
+    @cached_property
+    def edges(self) -> tuple[Edge, ...]:
+        """Return edges of this polygon."""
+        start_point = self.points[0]
+        start_to_start: list[Point] = [p for p in self.points] + [start_point]
+        edges: tuple[Edge, ...] = tuple(
+            Edge(p1, p2) for p1, p2 in itertools.pairwise(start_to_start)
+        )
+        return edges
+
+    @cached_property
+    def reversed(self) -> Polygon:
+        """Same points, in the opposite direction."""
+        reversed_points = list(reversed(self.points))
+        return Polygon.from_points(reversed_points)
+
+    def enclosed_area(self) -> float:
+        """Find the enclosed area of this polygon."""
+        matrix_sum = sum(e.determinant() for e in self.edges)
+        # The original formula is only valid going in one direction,
+        # and produces a negative result in the other direction.
+        # We could determine which way is counterclockwise ...
+        # OR we could just calculate it twice lol
+        if matrix_sum < 0:
+            return self.reversed.enclosed_area()
+        return matrix_sum
+
+    def count_enclosed_points(self) -> int:
+        """Count the number of integer points enclosed by this polygon.
+
+        See: Pick's theorem.
+        """
+        area = self.enclosed_area()
+        boundary_points = sum(e.integer_points() for e in self.edges)
+        return int(area + 1 - (boundary_points / 2))
 
 
 def get_edges(polygon: list[Point]) -> list[Edge]:

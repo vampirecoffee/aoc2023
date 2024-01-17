@@ -1,7 +1,7 @@
 """Part 1 of Day 1 of 2023 Advent of Code."""
-from copy import copy
 import argparse
 import string
+from copy import copy
 
 
 def get_calibration_value(s: str) -> int:
@@ -59,6 +59,7 @@ def sum_all_calibration_values(filename: str) -> int:
 
 
 def main():
+    """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
     args = parser.parse_args()

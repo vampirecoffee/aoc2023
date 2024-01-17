@@ -27,6 +27,7 @@ def sum_all_calibration_values(filename: str) -> int:
 
 
 def main():
+    """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
     args = parser.parse_args()

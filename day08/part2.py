@@ -3,14 +3,16 @@ from __future__ import annotations
 
 import argparse
 import math
-from dataclasses import dataclass, field
 import re
+from dataclasses import dataclass, field
 
 _node_re = re.compile(r"(...) = \((...), (...)\)")
 
 
 @dataclass
 class Node:
+    """One node in our network."""
+
     name: str
     left: str
     right: str
@@ -30,6 +32,8 @@ class Node:
 
 @dataclass
 class Network:
+    """A network, with many nodes."""
+
     directions: str
     nodes: dict[str, Node] = field(default_factory=dict)
     start_nodes: list[str] = field(default_factory=list, init=False)
@@ -55,7 +59,7 @@ class Network:
         cur = self.nodes[start_node_name]
         dir_idx = 0
         steps_taken = 0
-        while not (cur.name.endswith("Z")):
+        while not cur.name.endswith("Z"):
             if self.directions[dir_idx] == "L":
                 cur = self.nodes[cur.left]
             else:

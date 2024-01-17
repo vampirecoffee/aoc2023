@@ -2,14 +2,16 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass, field
 import re
+from dataclasses import dataclass, field
 
 _node_re = re.compile(r"(...) = \((...), (...)\)")
 
 
 @dataclass
 class Node:
+    """One node in our network."""
+
     name: str
     left: str
     right: str
@@ -29,6 +31,8 @@ class Node:
 
 @dataclass
 class Network:
+    """A network, with many nodes."""
+
     directions: str
     nodes: dict[str, Node] = field(default_factory=dict)
 

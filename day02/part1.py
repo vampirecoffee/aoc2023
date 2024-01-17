@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
-red_re = re.compile("(\d+) red")
-green_re = re.compile("(\d+) green")
-blue_re = re.compile("(\d+) blue")
+red_re = re.compile(r"(\d+) red")
+green_re = re.compile(r"(\d+) green")
+blue_re = re.compile(r"(\d+) blue")
+
 
 def _count_from_re(r: re.Pattern, s: str) -> int:
     """Use the regexes above to get the relevant count."""
@@ -19,6 +20,8 @@ def _count_from_re(r: re.Pattern, s: str) -> int:
 
 @dataclass
 class Round:
+    """One round of our game."""
+
     red: int
     green: int
     blue: int
@@ -37,9 +40,11 @@ class Round:
         blue = _count_from_re(blue_re, s)
         return cls(red=red, green=green, blue=blue)
 
+
 MAX_RED = 12
 MAX_GREEN = 13
 MAX_BLUE = 14
+
 
 def is_game_possible(game: str) -> bool:
     """Given a string defining a game, is that game possible?"""
@@ -50,7 +55,10 @@ def is_game_possible(game: str) -> bool:
             return False
     return True
 
-_game_id_re = re.compile("Game (\d+):")
+
+_game_id_re = re.compile(r"Game (\d+):")
+
+
 def get_game_id(game: str) -> int:
     """Get game ID from the line."""
     m = _game_id_re.search(game)
@@ -58,7 +66,9 @@ def get_game_id(game: str) -> int:
         raise RuntimeError(f"Unable to find ID of game `{game}`")
     return int(m.group(1))
 
+
 def sum_valid_ids_in_file(filename: str) -> int:
+    """Sum up how many valid IDs are in the file."""
     sum_game_ids = 0
     with open(filename, encoding="utf-8") as f:
         for line in f:
@@ -66,12 +76,14 @@ def sum_valid_ids_in_file(filename: str) -> int:
                 sum_game_ids += get_game_id(line)
     return sum_game_ids
 
+
 def main():
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
     args = parser.parse_args()
     print(sum_valid_ids_in_file(args.filename))
+
 
 if __name__ == "__main__":
     main()

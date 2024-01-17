@@ -2,22 +2,23 @@
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass, field
-from collections import defaultdict
-from typing import Optional, Callable
 from enum import Enum
 
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from graph import Point
+from aoc_tools.graph import Point
 
-_inf = 999999999999999999999999999999999999999  # basically infinity.
+INFINITY = 999999999999999999999999999999999999999  # basically infinity.
 
 MAX_STEPS = 26501365
 
 
 class Cell(Enum):
+    """One cell in our graph/map/thing."""
+
     START = "S"
     PLOT = "."
     ROCK = "#"
@@ -25,11 +26,11 @@ class Cell(Enum):
 
 @dataclass
 class Map:
+    """Our map, with many cells."""
+
     grid: list[list[Cell]] = field(default_factory=list)
     height: int = 0
     width: int = 0
-    max_row: int = 0
-    max_col: int = 0
     # Cost -> points to visit
     queues_by_cost: defaultdict[int, list[Point]] = field(
         default_factory=lambda: defaultdict(list)
@@ -48,11 +49,19 @@ class Map:
         """Set height, width, that kind of thing."""
         self.height = len(self.grid)
         self.width = len(self.grid[0])
-        self.max_row = self.height - 1
-        self.max_col = self.width - 1
         self.queues_by_cost = defaultdict(list)
         self.seen_points = set()
         self.rcount = 0
+
+    @property
+    def max_row(self) -> int:
+        """Maximum valid row for this map."""
+        return self.height - 1
+
+    @property
+    def max_col(self) -> int:
+        """Maximum valid column for this map."""
+        return self.width - 1
 
     def _find_start(self) -> Point:
         """Find the starting point in the grid."""
@@ -139,7 +148,15 @@ class Map:
         # And another length to go around again
         remember_steps = [(self.height * n) + half_grid_size for n in (0, 1, 2)]
         # Let's run all that
-        f0, f1, f2 = self.walk_n_steps(remember_steps)
+        walk_n_result = self.walk_n_steps(remember_steps)
+        if len(walk_n_result) != 3:
+            raise RuntimeError(
+                "Expected walk_n_result to return a list with exactly 3 items;"
+                f" instead, got {walk_n_result}"
+            )
+        f0 = walk_n_result[0]
+        f1 = walk_n_result[1]
+        f2 = walk_n_result[2]
         print(f0, f1, f2)
         # f(0) = a*0 + b*0 + c
         # so f(0) == c
@@ -162,7 +179,7 @@ def parse_file(filename: str) -> int:
     """Parse file and solve problem."""
     # This is kinda ugly but. I don't care.
     if "sample_input" in filename:
-        global MAX_STEPS
+        global MAX_STEPS  # pylint: disable=global-statement
         MAX_STEPS = 50
     m = Map()
     with open(filename) as f:

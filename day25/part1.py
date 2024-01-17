@@ -1,20 +1,22 @@
+"""Part 1 of solution for day 25."""
 from __future__ import annotations
 
 import argparse
+import itertools
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
-import itertools
 from typing import Any, Iterable, Optional
-from copy import deepcopy
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
 INFINITY = 9999999999999999999999999999999999999999999999999999999
 
 
 @dataclass(frozen=True)
 class Wire:
+    """Wire connecting two components."""
+
     left: str
     right: str
 
@@ -29,11 +31,13 @@ class Wire:
         self_tuple = (self.left, self.right)
         other_tuple = (other.left, other.right)
         other_rev_tuple = (other.right, other.left)
-        return (self_tuple == other_tuple) or (self_tuple == other_rev_tuple)
+        return self_tuple in (other_tuple, other_rev_tuple)
 
 
 @dataclass(frozen=True)
 class Edge:
+    """Edge connecting 2 components with some 'weight' (aka cost)."""
+
     left: str
     right: str
     weight: int = 1
@@ -51,6 +55,7 @@ class Edge:
         ) and self.weight == other.weight
 
     def as_set(self) -> set[str]:
+        """Return this edge as a set of its two vertexes."""
         return set([self.left, self.right])
 
     def to(self, node: str) -> Optional[str]:
@@ -74,6 +79,8 @@ class Edge:
 
 @dataclass(frozen=True)
 class Cut:
+    """One 'cut' across the graph for the Stoer-Wagner algorithm."""
+
     s: str
     t: str
     weight: int
@@ -82,6 +89,8 @@ class Cut:
 
 @dataclass
 class Graph:
+    """Graph with vertices connected by edges."""
+
     vertices: set[str] = field(default_factory=set)
     edges: set[Edge] = field(default_factory=set)
 
@@ -206,7 +215,6 @@ class Graph:
         for vtx, weight in weights_in.items():
             new_edge = Edge(vtx, joined_name, weight)
             self.add_edge(new_edge)
-        return
 
     def stoer_wagner_alg(self) -> Cut:
         """Stoer-Wagner algorithm."""
@@ -234,6 +242,7 @@ class Graph:
         return best_cut
 
     def stoer_wagner_once(self) -> Cut:
+        """Run one iteration of the Stoer-Wagner algorithm."""
         start = self.vertices.pop()
         self.vertices.add(start)
         subgraph = set([start])
@@ -244,7 +253,7 @@ class Graph:
             s = t
             t, weight = self.most_tightly_connected_vertex(subgraph)
             subgraph.add(t)
-        cut_edges = set([edge for edge in self.edges if t in edge.as_set()])
+        cut_edges = {edge for edge in self.edges if t in edge.as_set()}
         return Cut(s, t, weight, cut_edges)
 
 
@@ -285,7 +294,6 @@ def walk(wires: Iterable[Wire]) -> set[str]:
     reached = set(curr)
     while len(curr) != 0:
         next_nodes: set[str] = set()
-        prev_reached = set(reached)
         for w in wires:
             if w.left in curr and w.right not in reached:
                 next_nodes.add(w.right)

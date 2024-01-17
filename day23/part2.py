@@ -1,23 +1,24 @@
+"""Part 2 of solution for day 23."""
 from __future__ import annotations
 
 import argparse
-from functools import cache
-from collections import deque, defaultdict
-from dataclasses import dataclass, field
-from typing import Any
-import sys
-import math
-from enum import Enum
 import functools
+import sys
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
-from graph import Dir, Point
+from aoc_tools.graph import Dir, Point
 
 sys.setrecursionlimit(100000)
 
 
 class Tile(Enum):
+    """One tile on our map/graph/thing."""
+
     PATH = "."
     FOREST = "#"
     UP = "^"
@@ -29,8 +30,7 @@ class Tile(Enum):
         """Valid directions to go from here."""
         if self == Tile.FOREST:
             return []
-        else:
-            return [Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN]
+        return [Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN]
 
     @property
     def visitable(self) -> bool:
@@ -40,6 +40,8 @@ class Tile(Enum):
 
 @dataclass(frozen=True)
 class State:
+    """Our state when we've taken some path to the given point."""
+
     at: Point
     cost: int
     visited: frozenset[Point]
@@ -47,6 +49,8 @@ class State:
 
 @dataclass(frozen=True)
 class CacheKey:
+    """Key used for our cache, where we keep track of previously-calculated costs."""
+
     at: Point
     visited: frozenset[Point]
 
@@ -83,7 +87,7 @@ class Map:
                 break
 
         bottom_row = self.tiles[-1]
-        if tile.PATH in bottom_row:
+        if Tile.PATH in bottom_row:
             for col_idx, tile in enumerate(bottom_row):
                 if tile == Tile.PATH:
                     self.end_row = self.max_row
@@ -156,23 +160,6 @@ class Map:
                 max_cost = neighbor_cost
         return max_cost, best_path
 
-    def old_take_a_hike(self, debug=False) -> int:
-        """Take a hike and return the longest path."""
-        path = frozenset([self.start_point])
-        tiles_as_tuple = tuple(tuple(t for t in row) for row in self.tiles)
-        cost, best_path = cacheable_visit(
-            tiles_as_tuple,
-            self.start_point,
-            path,
-            cost=0,
-            max_row=self.max_row,
-            max_col=self.max_col,
-            end_point=self.end_point,
-        )
-        if debug:
-            self.print_path(set(best_path))
-        return cost
-
     def find_nodes(self) -> defaultdict[Point, list[tuple[Point, int]]]:
         """Find coordinates where you can take different paths
         and the distance between each node.
@@ -218,7 +205,7 @@ class Map:
                 cur_dir = list(next_dirs)[0]
         return nodes
 
-    def take_a_hike(self, debug=False) -> int:
+    def take_a_hike(self) -> int:
         """Take a hike and return the longest path."""
         cache: dict[CacheKey, int] = {}
         longest_path = -1
@@ -278,66 +265,6 @@ class Map:
             print("".join(row_out))
 
 
-@functools.cache
-def cacheable_visit(
-    tiles: tuple[tuple[Tile]],
-    point: Point,
-    path: frozenset[Point],
-    cost: int,
-    max_row: int,
-    max_col: int,
-    end_point: Point,
-) -> tuple[int, frozenset[Point]]:
-    """The visit function ... but cacheable."""
-    if point == end_point:
-        return (cost, path)
-    max_cost = -1
-    best_path = frozenset(path)
-    point_neighbors = cacheable_neighbors(tiles, point, max_row, max_col)
-    for neighbor in point_neighbors:
-        if neighbor in path:
-            continue
-        new_path = frozenset(path | set([neighbor]))
-        neighbor_cost, neighbor_path = cacheable_visit(
-            tiles, neighbor, new_path, cost + 1, max_row, max_col, end_point
-        )
-        if neighbor_cost > max_cost:
-            best_path = neighbor_path
-            max_cost = neighbor_cost
-    return max_cost, best_path
-
-
-@functools.cache
-def cacheable_valid_checker(
-    tiles: tuple[tuple[Tile]],
-    point: Point,
-    max_row: int,
-    max_col: int,
-) -> bool:
-    """Validity checker ... but cacheable."""
-    if not point.valid(max_row, max_col):
-        return False
-    t = tiles[point.row][point.col]
-    return t.visitable
-
-
-@functools.cache
-def cacheable_neighbors(
-    tiles: tuple[tuple[Tile]],
-    point: Point,
-    max_row: int,
-    max_col: int,
-) -> frozenset[Point]:
-    """Neighbors function, but cacheable."""
-    new_points: set[Point] = set()
-    new_dirs = tiles[point.row][point.col].valid_dirs()
-    for d in new_dirs:
-        neighbor = point.go(d)
-        if cacheable_valid_checker(tiles, point, max_row, max_col):
-            new_points.add(neighbor)
-    return frozenset(new_points)
-
-
 def parse_file(filename) -> int:
     """Parse file and solve problem."""
     m = Map()
@@ -345,7 +272,7 @@ def parse_file(filename) -> int:
         for line in f:
             if line.strip():
                 m.add_row(line)
-    return m.take_a_hike(debug=False)
+    return m.take_a_hike()
 
 
 def main():

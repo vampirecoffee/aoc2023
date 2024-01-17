@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "aoc2023"
+version = "0.26.0"
+description = ""
+authors = ["vampirecoffee <skye@vampirecoffee.net>"]
+readme = "README.md"
+packages = [
+    { include = "aoc_tools" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.3"
+sympy = "^1.12"
+typing-extensions = "^4.9.0"
+tqdm = "^4.66.1"
+types-tqdm = "^4.66.0.20240106"
+isort = "^5.13.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.8.0"
+black = "^23.12.1"
+isort = "^5.13.2"
+pylint = "^3.0.3"
+pydocstyle = "^6.3.0"
+pytest = "^7.4.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile="black"
+multi_line_output=3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 90
+
+[tool.pylint.main]
+disable=["unspecified-encoding","too-many-locals"]

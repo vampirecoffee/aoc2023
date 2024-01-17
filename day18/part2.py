@@ -1,14 +1,17 @@
+"""Part 2 of solution for Day 18."""
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
-from dataclasses import dataclass
 import re
-from graph import Dir, Point, count_enclosed_points, perimeter
+from dataclasses import dataclass
+
+from aoc_tools.graph import Dir, Point, count_enclosed_points, perimeter
 
 
 @dataclass(frozen=True)
 class RGB:
+    """RGB color."""
+
     red: int
     green: int
     blue: int
@@ -29,18 +32,19 @@ def _int_to_dir(i: int) -> Dir:
     """Convert an int in the input into a direction."""
     if i == 0:
         return Dir.RIGHT
-    elif i == 1:
+    if i == 1:
         return Dir.DOWN
-    elif i == 2:
+    if i == 2:
         return Dir.LEFT
-    elif i == 3:
+    if i == 3:
         return Dir.UP
-    else:
-        raise ValueError(f"{i} should be between 0 and 3 inclusive")
+    raise ValueError(f"{i} should be between 0 and 3 inclusive")
 
 
 @dataclass(frozen=True)
 class Instruction:
+    """One 'instruction' saying what dir/how far to dig."""
+
     direction: Dir
     n: int
 

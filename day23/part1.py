@@ -1,17 +1,19 @@
+"""Part 1 of the solution for day 23."""
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass, field
 import sys
+from dataclasses import dataclass, field
 from enum import Enum
-import functools
 
-from graph import Dir, Point
+from aoc_tools.graph import Dir, Point
 
 sys.setrecursionlimit(100000)
 
 
 class Tile(Enum):
+    """One tile on our graph/map/thing."""
+
     PATH = "."
     FOREST = "#"
     UP = "^"
@@ -23,18 +25,17 @@ class Tile(Enum):
         """Valid directions to go from here."""
         if self == Tile.PATH:
             return [Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN]
-        elif self == Tile.FOREST:
+        if self == Tile.FOREST:
             return []
-        elif self == Tile.UP:
+        if self == Tile.UP:
             return [Dir.UP]
-        elif self == Tile.LEFT:
+        if self == Tile.LEFT:
             return [Dir.LEFT]
-        elif self == Tile.RIGHT:
+        if self == Tile.RIGHT:
             return [Dir.RIGHT]
-        elif self == Tile.DOWN:
+        if self == Tile.DOWN:
             return [Dir.DOWN]
-        else:
-            raise ValueError(f"Unrecognized tile {self}")
+        raise ValueError(f"Unrecognized tile {self}")
 
     @property
     def visitable(self) -> bool:

@@ -1,14 +1,13 @@
 """Solution for part 2 of day 05."""
 from __future__ import annotations
 
-from copy import deepcopy
 import argparse
-import string
-from collections import defaultdict
-from dataclasses import dataclass, field
 import re
+import string
+from copy import deepcopy
+from dataclasses import dataclass, field
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
 
 @dataclass(frozen=True)
@@ -50,10 +49,17 @@ class MapRange:
 
     @property
     def source_end(self) -> int:
+        """Return the largest 'source' number in this range."""
         return self.src_start + self.length - 1
 
     @property
     def range_end(self) -> int:
+        """Return the number you'd use to create a range.
+
+        For example, if you wanted a python ``range``
+        matching a MapRange with src_start = 3 and length = 5,
+        you'd want ``range(3,8)``.
+        """
         return self.src_start + self.length
 
 
@@ -91,7 +97,6 @@ class Map:
         """Convert a range to output ranges."""
         mrs = deepcopy(self.ranges)
         mrs.sort(key=lambda r: r.src_start)
-        end_n = start_n + size
         ranges_out: list[tuple[int, int]] = []
         for mr in mrs:
             if size == 0:
@@ -165,18 +170,13 @@ class Almanac:
         return min(locations)
 
     def lowest_loc_in_range(self, start: int, size: int) -> int:
+        """Return the lowest location in the given range."""
         return min(self.seed_to_location(s) for s in tqdm(range(start, start + size)))
 
     def lowest_location(self):
         """Get lowest location."""
         return min(
             self.seed_range_to_min_location(start, size)
-            for start, size in tqdm(self.seed_ranges)
-        )
-
-    def lowest_location_bad(self) -> int:
-        return min(
-            self.lowest_loc_in_range(start, size)
             for start, size in tqdm(self.seed_ranges)
         )
 

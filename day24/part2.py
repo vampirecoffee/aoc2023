@@ -1,9 +1,8 @@
+"""Part 2 of Day 24 solution."""
 from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-from typing import Iterable
-import itertools
 from functools import cached_property
 
 import sympy as sp
@@ -11,6 +10,8 @@ import sympy as sp
 
 @dataclass(frozen=True)
 class Point3D:
+    """Point in 3D space."""
+
     x: int
     y: int
     z: int
@@ -18,6 +19,8 @@ class Point3D:
 
 @dataclass(frozen=True)
 class Velocity:
+    """Velocity in 3D space."""
+
     x: int
     y: int
     z: int

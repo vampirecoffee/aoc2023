@@ -1,14 +1,14 @@
 """Solution for part 1 of day 6."""
 
 import argparse
-from dataclasses import dataclass
 import string
-
-from tqdm import tqdm  # type: ignore[import-untyped]
+from dataclasses import dataclass
 
 
 @dataclass
 class Race:
+    """One boat race (with a given time and distance)."""
+
     time: int
     distance: int
 

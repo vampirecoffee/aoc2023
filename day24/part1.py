@@ -1,20 +1,25 @@
+"""Part 1 of solution for day 24."""
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
-from typing import Iterable
 import itertools
+from dataclasses import dataclass
 from functools import cached_property
+from typing import Iterable
 
 
 @dataclass(frozen=True)
 class Point2D:
+    """Point in 2D space."""
+
     x: int
     y: int
 
 
 @dataclass(frozen=True)
 class Velocity:
+    """Velocity in 2D space."""
+
     x: int
     y: int
 
@@ -66,12 +71,11 @@ class Hailstone:
         """Will this hailstone's path intersect with another's?"""
         return self._denom(other) != 0
 
-    def in_the_past(self, x: float, y: float) -> bool:
+    def in_the_past(self, x: float, _: float) -> bool:
         """Is this point in the *past* for this hailstone?"""
         if self.vel.x > 0:
             return x < self.pos.x
-        else:
-            return x > self.pos.x
+        return x > self.pos.x
 
     def intersect_coords(self, other: Hailstone) -> tuple[float, float]:
         """What are the x,y coordinates where these two hailstones intersect?"""

@@ -2,21 +2,23 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass, field
 from collections import defaultdict
-from typing import Optional, Callable
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Callable
 
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from graph import Point
+from aoc_tools.graph import Point
 
-_inf = 999999999999999999999999999999999999999  # basically infinity.
+INFINITY = 999999999999999999999999999999999999999  # basically infinity.
 
 MAX_STEPS = 64
 
 
 class Type(Enum):
+    """Type of cell on our map/graph/thing."""
+
     START = "S"
     PLOT = "."
     ROCK = "#"
@@ -24,26 +26,26 @@ class Type(Enum):
 
 @dataclass
 class Cell:
+    """One cell on our map/graph/thing."""
+
     pt: Point
     contents: Type
     done: bool = False
-    min_dist: int = _inf
+    min_dist: int = INFINITY
 
     def __post_init__(self):
         """Post init."""
         if self.contents == Type.ROCK:
             self.done = True
-        if self.contents == Type.START:
-            # We start here;
-            # cost to get here is 0
-            self._dists.add(0)
 
     @property
     def row(self) -> int:
+        """Row for this cell."""
         return self.pt.row
 
     @property
     def col(self) -> int:
+        """Column for this cell."""
         return self.pt.col
 
     @property
@@ -91,6 +93,8 @@ class Cell:
 
 @dataclass
 class Map:
+    """Our map, with all its cells."""
+
     grid: list[list[Cell]] = field(default_factory=list)
     height: int = 0
     width: int = 0
@@ -172,8 +176,7 @@ class Map:
         def pretty(cell: Cell) -> str:
             if cell.reachable_in(MAX_STEPS):
                 return "O"
-            else:
-                return cell.contents.value
+            return cell.contents.value
 
         self._print_rows_by_cellfunc(pretty)
 
@@ -202,7 +205,7 @@ def parse_file(filename: str) -> int:
     """Parse file and solve problem."""
     # This is kinda ugly but. I don't care.
     if "sample_input" in filename:
-        global MAX_STEPS
+        global MAX_STEPS # pylint: disable=global-statement
         MAX_STEPS = 10
     m = Map()
     with open(filename) as f:
