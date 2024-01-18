@@ -1,22 +1,24 @@
+"""Solution for Part 1 of day 20."""
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
-from copy import deepcopy
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-import re
 
 
 class Pulse(Enum):
+    """Type of pulse (low or high) that was sent."""
+
     LOW = 0
     HIGH = 1
 
 
 @dataclass(frozen=True)
 class Signal:
+    """A signal - a pulse sent from one module to another."""
+
     pulse: Pulse  # kind of pulse that was sent
     fr: str  # name of module that pulse is from
     to: str  # name of module to send to
@@ -33,13 +35,14 @@ class Signal:
 
 @dataclass
 class Module(ABC):
+    """A module. It has a name and a list of other modules it sends pulses to."""
+
     name: str
     send_to: list[str] = field(default_factory=list)
 
     @abstractmethod
     def handle_pulse(self, pulse: Pulse, from_module: str) -> list[Signal]:
         """Handle a pulse; return the signals sent out."""
-        ...
 
     def _send_to_all(self, pulse: Pulse) -> list[Signal]:
         """Send the same pulse to all outputs."""
@@ -50,6 +53,8 @@ class Module(ABC):
 
 @dataclass
 class FlipFlop(Module):
+    """A flip-flop module."""
+
     on: bool = False
 
     def handle_pulse(self, pulse: Pulse, _: str) -> list[Signal]:
@@ -60,27 +65,26 @@ class FlipFlop(Module):
         if pulse == Pulse.HIGH:
             return []
         # these are in the opposite order from the problem statement
-        pulse_out: Pulse
         if self.on:
             self.on = False
             return self._send_to_all(Pulse.LOW)
-        else:  # module was off
-            self.on = True
-            return self._send_to_all(Pulse.HIGH)
+        # otherwise, the module was off
+        self.on = True
+        return self._send_to_all(Pulse.HIGH)
 
 
 @dataclass
 class Conjunction(Module):
+    """A conjunction module, which keeps track of the most recent signals it received."""
+
     most_recent_signal: dict[str, Pulse] = field(default_factory=dict)
 
     def handle_pulse(self, pulse: Pulse, from_module: str) -> list[Signal]:
         """Handle pulse for conjunction."""
         self.most_recent_signal[from_module] = pulse
-        pulse_out: Pulse
         if all(p == Pulse.HIGH for p in self.most_recent_signal.values()):
             return self._send_to_all(Pulse.LOW)
-        else:
-            return self._send_to_all(Pulse.HIGH)
+        return self._send_to_all(Pulse.HIGH)
 
 
 @dataclass
@@ -131,7 +135,6 @@ class Network:
 
     def add_module(self, s: str) -> None:
         """Add a module to this network."""
-        self_needs_memset = True  # Might need to re-set conjunction memory later
         module: Module
         s = s.strip()
         if s.startswith("broadcaster"):
@@ -175,7 +178,7 @@ class Network:
             for new_sig in new_signals:
                 signals_to_send.append(new_sig)
 
-    def count_pulses_sent(self, push_n_times=1000) -> int:
+    def count_pulses_sent(self, push_n_times: int = 1000) -> int:
         """Count pulses sent by pushing the button N times."""
 
         for _ in range(push_n_times):
@@ -198,7 +201,7 @@ def parse_file(filename: str) -> int:
     return network.count_pulses_sent()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

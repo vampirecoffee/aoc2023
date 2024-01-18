@@ -123,7 +123,7 @@ def parse_file(filename: str) -> int:
     return sum(h.wins(i + 1) for i, h in enumerate(hands))
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -107,7 +107,7 @@ def parse_file(filename: str) -> int:
     return lagoon_size(polygon)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

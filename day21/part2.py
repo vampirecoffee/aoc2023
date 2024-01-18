@@ -167,7 +167,7 @@ class Map:
         a = int((f2 - 2 * f1 + f0) / 2)
         b = f1 - f0 - a
 
-        def polynomial(n) -> int:
+        def polynomial(n: int) -> int:
             n_squared = n * n
             return sum((a * n_squared, b * n, c))
 
@@ -191,7 +191,7 @@ def parse_file(filename: str) -> int:
     return m.part2()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

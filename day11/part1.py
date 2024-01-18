@@ -9,15 +9,20 @@ from itertools import combinations
 
 @dataclass(frozen=True)
 class Galaxy:
+    """One galaxy at a given position in the universe."""
+
     row: int
     col: int
 
     def distance_to(self, other: Galaxy) -> int:
+        """Distance between two galaxies."""
         return abs(self.row - other.row) + abs(self.col - other.col)
 
 
 @dataclass
 class Universe:
+    """The universe. Many galaxies are in it."""
+
     image: list[list[str]]
 
     def pretty(self) -> str:
@@ -36,7 +41,7 @@ class Universe:
         image: list[list[str]] = []
         for line in lines:
             line = line.strip()
-            as_list = [e for e in line]
+            as_list = list(line)
             image.append(as_list)
         return cls(image)
 
@@ -60,7 +65,9 @@ class Universe:
             self.image.insert(i, new_row)
 
         for i in cols_to_expand:
-            for j in range(0, len(self.image)):
+            for j in range(  # pylint: disable=consider-using-enumerate
+                0, len(self.image)
+            ):
                 self.image[j].insert(i, ".")
 
     def find_galaxies(self) -> list[Galaxy]:
@@ -94,7 +101,7 @@ def parse_file(filename: str) -> int:
     return universe.expand_and_sum_shortest_path()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

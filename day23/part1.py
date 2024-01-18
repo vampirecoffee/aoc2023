@@ -1,4 +1,5 @@
 """Part 1 of the solution for day 23."""
+
 from __future__ import annotations
 
 import argparse
@@ -115,7 +116,7 @@ class Map:
         return self.visit(self.start_point, path, 0)
 
 
-def parse_file(filename) -> int:
+def parse_file(filename: str) -> int:
     """Parse file and solve problem."""
     m = Map()
     with open(filename) as f:
@@ -125,7 +126,7 @@ def parse_file(filename) -> int:
     return m.take_a_hike()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

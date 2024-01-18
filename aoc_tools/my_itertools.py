@@ -1,3 +1,4 @@
+"""Tools for dealing with iterables that python does not have."""
 from collections.abc import Iterable
 from typing import TypeVar
 

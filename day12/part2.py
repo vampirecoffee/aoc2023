@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
-from dataclasses import dataclass
-from enum import Enum
-import itertools
 import functools
-from tqdm import tqdm  # type: ignore[import-untyped]
+from dataclasses import dataclass
 
+from tqdm import tqdm
 
 UNKNOWN = "?"
 OPERATIONAL = "."
@@ -25,8 +22,7 @@ def calc(row: str, groups: tuple[int]) -> int:
         # (if there's unknowns in there, we can make them all .)
         if DAMAGED not in row:
             return 1
-        else:
-            return 0
+        return 0
 
     if not row:
         # Groups exist, but row is done. whoops!
@@ -35,12 +31,11 @@ def calc(row: str, groups: tuple[int]) -> int:
     next_char = row[0]
     if next_char == DAMAGED:
         return calc_damaged(row, groups)
-    elif next_char == OPERATIONAL:
+    if next_char == OPERATIONAL:
         return calc_operational(row, groups)
-    elif next_char == UNKNOWN:
+    if next_char == UNKNOWN:
         return calc_damaged(row, groups) + calc_operational(row, groups)
-    else:
-        raise RuntimeError(f"Unrecognized character {next_char}")
+    raise RuntimeError(f"Unrecognized character {next_char}")
 
 
 @functools.cache
@@ -58,8 +53,8 @@ def calc_damaged(row: str, groups: tuple[int]) -> int:
         # it's the last group. woohoo.
         if len(groups) == 1:
             return 1
-        else:  # too many groups
-            return 0
+        # otherwise, there are too many groups
+        return 0
 
     # Make sure next character can be a separator
     if row[next_group] in (UNKNOWN, OPERATIONAL):
@@ -78,6 +73,8 @@ def calc_operational(row: str, groups: tuple[int]) -> int:
 
 @dataclass(frozen=True)
 class Row:
+    """One row in the input."""
+
     row: str
     groups: list[int]
 
@@ -92,24 +89,8 @@ class Row:
         return Row(row=row, groups=groups)
 
     def count_arrangements(self) -> int:
+        """Number of possible arrangements that make this row valid."""
         return calc(self.row, tuple(e for e in self.groups))
-        count = 0
-        how_many_unknown = sum(c == UNKNOWN for c in self.row)
-        for new_combo in tqdm(
-            itertools.product([OPERATIONAL, DAMAGED], repeat=how_many_unknown)
-        ):
-            copy_row = deepcopy(self.row)
-            for e in new_combo:
-                copy_row = copy_row.replace(UNKNOWN, e, 1)
-            assert UNKNOWN not in copy_row
-            try_groups = copy_row.split(OPERATIONAL)
-            try_groups = [e for e in try_groups if len(e) != 0]
-            if len(try_groups) != len(self.groups):
-                # print(try_groups, "not even the right number of groups")
-                continue
-            if [len(e) for e in try_groups] == self.groups:
-                count += 1
-        return count
 
 
 def parse_file(filename: str) -> int:
@@ -122,7 +103,7 @@ def parse_file(filename: str) -> int:
     return the_sum
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

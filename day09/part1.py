@@ -24,7 +24,7 @@ def parse_file(filename: str) -> int:
     return next_val_sum
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

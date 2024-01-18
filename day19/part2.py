@@ -3,20 +3,21 @@
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
 import itertools
-from dataclasses import dataclass, asdict
 import math
-from enum import Enum
 import re
+from dataclasses import asdict, dataclass
+from enum import Enum
 from typing import Optional, Union
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
 
 class Status(Enum):
-    Reject = 0
-    Accept = 1
+    """Status: accept or reject."""
+
+    REJECT = 0
+    ACCEPT = 1
 
 
 _part_re = re.compile(r"\{x=(\d+),m=(\d+),a=(\d+),s=(\d+)\}")
@@ -24,6 +25,8 @@ _part_re = re.compile(r"\{x=(\d+),m=(\d+),a=(\d+),s=(\d+)\}")
 
 @dataclass(frozen=True)
 class Part:
+    """A part, with x, m, a, and s scores/values/whatever."""
+
     x: int
     m: int
     a: int
@@ -43,11 +46,14 @@ class Part:
 
     @property
     def rating(self) -> int:
+        """The 'rating' of this part."""
         return self.x + self.m + self.a + self.s
 
 
 @dataclass(frozen=True)
 class PartInterval:
+    """An interval, representing a range of possible parts."""
+
     x: tuple[int, int]
     m: tuple[int, int]
     a: tuple[int, int]
@@ -59,14 +65,13 @@ class PartInterval:
         """Return a copy with the relevant interval changed."""
         if interval_name == "x":
             return PartInterval(new_interval, self.m, self.a, self.s)
-        elif interval_name == "m":
+        if interval_name == "m":
             return PartInterval(self.x, new_interval, self.a, self.s)
-        elif interval_name == "a":
+        if interval_name == "a":
             return PartInterval(self.x, self.m, new_interval, self.s)
-        elif interval_name == "s":
+        if interval_name == "s":
             return PartInterval(self.x, self.m, self.a, new_interval)
-        else:
-            raise ValueError(f"Unrecognized interval name {interval_name}")
+        raise ValueError(f"Unrecognized interval name {interval_name}")
 
     @property
     def total(self) -> int:
@@ -90,8 +95,8 @@ class Condition:
 
         if self.gt_lt == "<":
             return attr_val < self.val
-        else:
-            return attr_val > self.val
+        # self.gt_lt is >
+        return attr_val > self.val
 
     def interval_matches(
         self, pi: PartInterval
@@ -127,6 +132,8 @@ _rule_re = re.compile(r"(x|m|a|s)(<|>)(\d+):(\w+)")
 
 @dataclass(frozen=True)
 class Rule:
+    """A rule: condition + what comes next. Part of a workflow."""
+
     cond: Optional[Condition]
     _send_to: str  # workflow to send matching parts to
 
@@ -134,11 +141,11 @@ class Rule:
     def send_to(self) -> Union[Status, str]:
         """Where to send this."""
         if self._send_to == "R":
-            return Status.Reject
-        elif self._send_to == "A":
-            return Status.Accept
-        else:
-            return self._send_to
+            return Status.REJECT
+        if self._send_to == "A":
+            return Status.ACCEPT
+        # self._send_to represents a workflow
+        return self._send_to
 
     @classmethod
     def from_str(cls, s_in: str) -> Rule:
@@ -153,9 +160,9 @@ class Rule:
             cond = Condition(attr, gt_lt, val)
             send_to = match.group(4)
             return cls(cond, send_to)
-        else:
-            s_in = s_in.strip()
-            return cls(cond=None, _send_to=s_in)
+        # Otherwise...
+        s_in = s_in.strip()
+        return cls(cond=None, _send_to=s_in)
 
     def applies_to(self, part: Part) -> bool:
         """Does this rule apply to this part?"""
@@ -180,12 +187,16 @@ _workflow_re = re.compile(r"(\w+)\{(.*)\}")
 
 @dataclass(frozen=True)
 class IntervalTarget:
+    """A PartInterval + where they'll all be sent to."""
+
     pi: PartInterval
     to: Union[str, Status]
 
 
 @dataclass(frozen=True)
 class Workflow:
+    """A workflow: has a name and a list of rules to apply in order."""
+
     name: str
     rules: list[Rule]
 
@@ -199,7 +210,7 @@ class Workflow:
         rules = [Rule.from_str(r) for r in rule_str.split(",")]
         return cls(name, rules)
 
-    def apply(self, part) -> Union[Status, str]:
+    def apply(self, part: Part) -> Union[Status, str]:
         """Apply a workflow to a part."""
         for r in self.rules:
             if r.applies_to(part):
@@ -228,13 +239,14 @@ def apply_workflows(workflows: dict[str, Workflow], part: Part) -> Status:
 
 
 def interval_apply_workflows(workflows: dict[str, Workflow], pi: PartInterval) -> int:
+    """Apply the given workflows to a PartInterval."""
     total_accepted = 0
     queue: list[IntervalTarget] = [IntervalTarget(pi, "in")]
     with tqdm(total=pi.total) as pbar:
         while queue:
             cur_step = queue.pop()
             if isinstance(cur_step.to, Status):
-                if cur_step.to == Status.Accept:
+                if cur_step.to == Status.ACCEPT:
                     total_accepted += cur_step.pi.total
                 pbar.update(cur_step.pi.total)
                 continue
@@ -248,7 +260,7 @@ def score_parts(workflows: dict[str, Workflow], parts: list[Part]) -> int:
     """Score all accepted parts."""
     out = 0
     for p in parts:
-        if apply_workflows(workflows, p) == Status.Accept:
+        if apply_workflows(workflows, p) == Status.ACCEPT:
             out += p.rating
     return out
 
@@ -260,7 +272,7 @@ def stupid_part_2_solution(workflows: dict[str, Workflow]) -> int:
     with tqdm(total=total) as pbar:
         for x, m, a, s in tqdm(itertools.product(range(1, 4001), repeat=4)):
             p = Part(x, m, a, s)
-            if apply_workflows(workflows, p) == Status.Accept:
+            if apply_workflows(workflows, p) == Status.ACCEPT:
                 accepted += 1
             pbar.update(1)
     return accepted
@@ -295,11 +307,10 @@ def parse_file(filename: str) -> int:
     for s in workflow_strs:
         w = Workflow.from_str(s)
         workflows[w.name] = w
-    parts = [Part.from_str(s) for s in part_strs]
     return less_stupid_part_2(workflows)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

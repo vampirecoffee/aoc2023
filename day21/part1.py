@@ -33,7 +33,7 @@ class Cell:
     done: bool = False
     min_dist: int = INFINITY
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post init."""
         if self.contents == Type.ROCK:
             self.done = True
@@ -58,7 +58,7 @@ class Cell:
             ),
         )
 
-    def reachable_in(self, steps=MAX_STEPS) -> bool:
+    def reachable_in(self, steps: int = MAX_STEPS) -> bool:
         """Can you reach this cell in *precisely* N steps?"""
         if steps < self.min_dist:
             return False
@@ -205,7 +205,7 @@ def parse_file(filename: str) -> int:
     """Parse file and solve problem."""
     # This is kinda ugly but. I don't care.
     if "sample_input" in filename:
-        global MAX_STEPS # pylint: disable=global-statement
+        global MAX_STEPS  # pylint: disable=global-statement
         MAX_STEPS = 10
     m = Map()
     with open(filename) as f:
@@ -219,7 +219,7 @@ def parse_file(filename: str) -> int:
     return c
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

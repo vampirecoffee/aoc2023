@@ -77,7 +77,7 @@ def sum_valid_ids_in_file(filename: str) -> int:
     return sum_game_ids
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -35,7 +35,14 @@ multi_line_output=3
 include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
-line_length = 90
+line_length = 88 # same as black
+
+[tool.mypy]
+explicit_package_bases = true
+disallow_untyped_defs = true
+
+[tool.black]
+preview = true
 
 [tool.pylint.main]
 disable=["unspecified-encoding","too-many-locals"]

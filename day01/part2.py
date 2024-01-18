@@ -58,7 +58,7 @@ def sum_all_calibration_values(filename: str) -> int:
     return the_sum
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -62,7 +62,7 @@ def parse_file(filename: str) -> int:
     return race.ways_to_beat()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

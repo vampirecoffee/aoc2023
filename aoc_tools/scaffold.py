@@ -1,8 +1,19 @@
+"""Basic scaffold."""
+
 from __future__ import annotations
 
 import argparse
 
-def main():
+
+def parse_file(filename: str) -> int:
+    """Parse the file."""
+    with open(filename) as f:
+        for line in f:
+            print(line)
+    return 0
+
+
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

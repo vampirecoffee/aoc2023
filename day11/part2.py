@@ -12,18 +12,20 @@ EXP_FACTOR = 1000000
 def _sorted_range(x: int, y: int) -> range:
     if x < y:
         return range(x, y)
-    else:
-        return range(y, x)
+    return range(y, x)
 
 
 @dataclass(frozen=True)
 class Galaxy:
+    """A galaxy, at some position in the universe."""
+
     row: int
     col: int
 
     def distance_to(
         self, other: Galaxy, exp_rows: list[int], exp_cols: list[int]
     ) -> int:
+        """Distance between two galaxies, after the universe has expanded."""
         dist = abs(self.row - other.row) + abs(self.col - other.col)
         for row in exp_rows:
             if row in _sorted_range(self.row, other.row):
@@ -36,6 +38,8 @@ class Galaxy:
 
 @dataclass
 class Universe:
+    """Universe. It's expanding."""
+
     image: list[list[str]]
     exp_rows: list[int] = field(default_factory=list)
     exp_cols: list[int] = field(default_factory=list)
@@ -56,7 +60,7 @@ class Universe:
         image: list[list[str]] = []
         for line in lines:
             line = line.strip()
-            as_list = [e for e in line]
+            as_list = list(line)
             image.append(as_list)
         return cls(image)
 
@@ -109,7 +113,7 @@ def parse_file(filename: str) -> int:
     return universe.expand_and_sum_shortest_path()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

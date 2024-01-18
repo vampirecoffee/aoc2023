@@ -1,12 +1,16 @@
 """Basic hashable types for Python."""
+from __future__ import annotations
 
-from collections.abc import Iterable, MutableMapping, MutableSequence, Mapping, Iterator
-from typing import Any, TypeVar, Union, Optional, overload, Type, cast, assert_type
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+)
+from typing import Optional, TypeVar, Union, cast, overload
 
 from typing_extensions import SupportsIndex
-
-from my_itertools import first
-
 
 T = TypeVar("T")
 
@@ -44,11 +48,11 @@ class HashList(MutableSequence[T]):
         return HashList(self._items[key])
 
     @overload
-    def __setitem__(self, key: SupportsIndex, value: T):
+    def __setitem__(self, key: SupportsIndex, value: T) -> None:
         ...
 
     @overload
-    def __setitem__(self, key: slice, value: Iterable[T]):
+    def __setitem__(self, key: slice, value: Iterable[T]) -> None:
         ...
 
     def __setitem__(
@@ -58,7 +62,6 @@ class HashList(MutableSequence[T]):
         if isinstance(key, SupportsIndex):
             value = cast(T, value)
             self._items[key] = value
-            return
         else:
             value = cast(Iterable[T], value)
             self._items[key] = value
@@ -71,9 +74,9 @@ class HashList(MutableSequence[T]):
         """Length."""
         return len(self._items)
 
-    def insert(self, i: SupportsIndex, x: T) -> None:
+    def insert(self, index: SupportsIndex, value: T) -> None:
         """Insert x at index i."""
-        self._items.insert(i, x)
+        self._items.insert(index, value)
 
 
 K = TypeVar("K")
@@ -92,7 +95,7 @@ class HashDict(MutableMapping[K, V]):
             self._items = {}
             return
         if isinstance(items, Mapping):
-            self._items = {k: v for k, v in items.items()}
+            self._items = dict(items.items())
         elif isinstance(items, Iterable):
             self._items = dict(items)
         else:
@@ -116,3 +119,9 @@ class HashDict(MutableMapping[K, V]):
 
     def __len__(self) -> int:
         return len(self._items)
+
+    def set(self, key: K, value: V) -> HashDict:
+        """Return a new HashDict where key is set to value."""
+        new = HashDict(self._items)
+        new[key] = value
+        return new

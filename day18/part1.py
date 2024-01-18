@@ -1,4 +1,5 @@
 """Part 1 of solution for Day 18."""
+
 from __future__ import annotations
 
 import argparse
@@ -65,7 +66,7 @@ class Instruction:
         return grid
 
 
-def follow_dig_plan(plan: list[Instruction], debug=False) -> list[Point]:
+def follow_dig_plan(plan: list[Instruction], debug: bool = False) -> list[Point]:
     """Follow the dig plan and return a list of points in the polygon."""
     if debug:
         grid_row = ["."] * 7
@@ -107,7 +108,7 @@ def parse_file(filename: str) -> int:
     return lagoon_size(polygon)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

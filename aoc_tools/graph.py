@@ -1,23 +1,29 @@
 """Basic direction/graph stuff."""
 
 from __future__ import annotations
-from dataclasses import dataclass
-from functools import cached_property
-from typing import Iterable
+
 import itertools
 import math
+from dataclasses import dataclass
 from enum import Enum
+from functools import cached_property
+from typing import Iterable
 
 import numpy
 
+from aoc_tools.numbers import between
+
 
 class Dir(Enum):
+    """A direction: left, right, up, or down."""
+
     LEFT = "L"
     RIGHT = "R"
     UP = "U"
     DOWN = "D"
 
     def reverse(self) -> Dir:
+        """Reverse this direction."""
         if self == Dir.LEFT:
             return Dir.RIGHT
         if self == Dir.RIGHT:
@@ -31,15 +37,23 @@ class Dir(Enum):
 
 @dataclass(frozen=True)
 class Point:
+    """One point in 2D space.
+
+    By default, this uses row and column;
+    use the ``from_xy`` constructor if you want to make an XY point.
+    """
+
     row: int
     col: int
 
     @property
     def x(self) -> int:
+        """X-coordinate of this point."""
         return self.col
 
     @property
     def y(self) -> int:
+        """Y-coordinate of this point."""
         return self.row
 
     @classmethod
@@ -47,27 +61,26 @@ class Point:
         """Create a point from x,y coordinates."""
         return cls(row=y, col=x)
 
-    def go(self, direction: Dir, n=1) -> Point:
+    def go(self, direction: Dir, n: int = 1) -> Point:
         """From this point, go in a direction."""
         if direction == Dir.LEFT:
             return Point(self.row, self.col - n)
-        elif direction == Dir.RIGHT:
+        if direction == Dir.RIGHT:
             return Point(self.row, self.col + n)
-        elif direction == Dir.UP:
+        if direction == Dir.UP:
             return Point(self.row - n, self.col)
-        elif direction == Dir.DOWN:
+        if direction == Dir.DOWN:
             return Point(self.row + n, self.col)
+        raise ValueError(f"Unrecognized direction {direction}")
 
     def valid(self, max_row: int, max_col: int) -> bool:
         """Is this point valid for a graph with the given max_row+max_col?"""
-        return all(
-            (
-                self.row >= 0,
-                self.row <= max_row,
-                self.col >= 0,
-                self.col <= max_col,
-            )
-        )
+        return all((
+            self.row >= 0,
+            self.row <= max_row,
+            self.col >= 0,
+            self.col <= max_col,
+        ))
 
     def determinant(self, other: Point) -> int:
         """Return the determinant of a 2x2 matrix of this and other.
@@ -92,6 +105,8 @@ class Point:
 
 @dataclass(frozen=True)
 class Edge:
+    """An edge, connecting two points."""
+
     p1: Point
     p2: Point
 
@@ -126,15 +141,27 @@ class Edge:
         ]
         return numpy.linalg.matrix_rank(matrix) <= 1
 
-    def intersects(self, other: Edge) -> bool:
-        """Does this edge intersect with the other one?"""
+    def intersects(self, other: Edge, infinite: bool = True) -> bool:
+        """Does this edge intersect with the other one?
+
+        If 'infinite' is true, assumes that the edges represent a segment
+        of a line that extends infinitely across the plane.
+        """
         # Math!
         # This is the denominator used to calculate the intersection coordinates
         denom = (self.p1.x - self.p2.x) * (other.p1.y - other.p2.y) - (
             self.p1.y - self.p2.y
         ) * (other.p1.x - other.p2.x)
-        # If it's 0, the lines are parallel
-        return denom != 0
+        if infinite:
+            # If it's 0, the lines are parallel
+            return denom != 0
+        row, col = self.intersection_point(other)
+        return all((
+            between(row, (self.p1.row, self.p2.row)),
+            between(row, (other.p1.row, other.p2.row)),
+            between(col, (self.p1.col, self.p2.col)),
+            between(col, (other.p1.col, other.p2.col)),
+        ))
 
     def intersection_point(self, other: Edge) -> tuple[float, float]:
         """Return the point where these two lines intersect.
@@ -161,6 +188,8 @@ class Edge:
 
 @dataclass(frozen=True)
 class Polygon:
+    """A polygon, made up of N points (in some order)."""
+
     points: tuple[Point, ...]
 
     @classmethod
@@ -172,13 +201,13 @@ class Polygon:
     @cached_property
     def _point_list(self) -> list[Point]:
         """Return points as a list."""
-        return [e for e in self.points]
+        return list(self.points)
 
     @cached_property
     def edges(self) -> tuple[Edge, ...]:
         """Return edges of this polygon."""
         start_point = self.points[0]
-        start_to_start: list[Point] = [p for p in self.points] + [start_point]
+        start_to_start: list[Point] = self._point_list + [start_point]
         edges: tuple[Edge, ...] = tuple(
             Edge(p1, p2) for p1, p2 in itertools.pairwise(start_to_start)
         )

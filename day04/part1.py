@@ -42,7 +42,7 @@ def score_file(filename: str) -> int:
     return card_sum
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

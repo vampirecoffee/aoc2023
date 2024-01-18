@@ -1,26 +1,28 @@
+"""Part 2 of solution for day 20."""
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
-from copy import deepcopy
-from abc import ABC, abstractmethod
-from functools import cache
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
 import math
 import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from enum import Enum
+from functools import cache
 
-from frozendict import frozendict
+from aoc_tools.hashable import HashDict
 
 
 class Pulse(Enum):
+    """A pulse (low or high)."""
+
     LOW = 0
     HIGH = 1
 
 
 @dataclass(frozen=True)
 class Signal:
+    """A signal - a pulse sent from one module to another."""
+
     pulse: Pulse  # kind of pulse that was sent
     fr: str  # name of module that pulse is from
     to: str  # name of module to send to
@@ -37,13 +39,14 @@ class Signal:
 
 @dataclass
 class Module(ABC):
+    """A generic module that sends and receives pulses."""
+
     name: str
     send_to: list[str] = field(default_factory=list)
 
     @abstractmethod
     def handle_pulse(self, pulse: Pulse, from_module: str) -> list[Signal]:
         """Handle a pulse; return the signals sent out."""
-        ...
 
     def _send_to_all(self, pulse: Pulse) -> list[Signal]:
         """Send the same pulse to all outputs."""
@@ -54,6 +57,8 @@ class Module(ABC):
 
 @dataclass(frozen=True)
 class FrozenModule:
+    """Like a module, but frozen."""
+
     name: str
     send_to: tuple[str, ...]
 
@@ -65,6 +70,8 @@ def _frozen_send_to_all(fm: FrozenModule, pulse: Pulse) -> list[Signal]:
 
 @dataclass(frozen=True)
 class FrozenFlipFlop(FrozenModule):
+    """Like a flip-flop, but frozen."""
+
     name: str
     send_to: tuple[str, ...]
     on: bool
@@ -76,15 +83,16 @@ def _handle_flip_flop_pulse(fm: FrozenFlipFlop, pulse: Pulse) -> list[Signal]:
     if pulse == Pulse.HIGH:
         return []
     # these are in the opposite order from the problem statement
-    pulse_out: Pulse
     if fm.on:
         return _frozen_send_to_all(fm, Pulse.LOW)
-    else:  # module was off
-        return _frozen_send_to_all(fm, Pulse.HIGH)
+    # otherwise, the module was off
+    return _frozen_send_to_all(fm, Pulse.HIGH)
 
 
 @dataclass
 class FlipFlop(Module):
+    """A flip-flop module."""
+
     on: bool = False
 
     def freeze(self) -> FrozenFlipFlop:
@@ -106,7 +114,9 @@ class FlipFlop(Module):
 
 @dataclass(frozen=True)
 class FrozenConjunction(FrozenModule):
-    most_recent_signal: frozendict[str, Pulse]
+    """Like a conjunction module, but frozen."""
+
+    most_recent_signal: HashDict[str, Pulse]
 
 
 @cache
@@ -117,18 +127,20 @@ def _handle_conjunction_pulse(
     fd = fm.most_recent_signal.set(from_module, pulse)
     if all(p == Pulse.HIGH for p in fd.values()):
         return _frozen_send_to_all(fm, Pulse.LOW)
-    else:
-        return _frozen_send_to_all(fm, Pulse.HIGH)
+    # At least one pulse was low
+    return _frozen_send_to_all(fm, Pulse.HIGH)
 
 
 @dataclass
 class Conjunction(Module):
+    """A conjunction module."""
+
     most_recent_signal: dict[str, Pulse] = field(default_factory=dict)
 
     def freeze(self) -> FrozenConjunction:
         """Return a frozen copy."""
         tst = tuple(s for s in self.send_to)
-        return FrozenConjunction(self.name, tst, frozendict(self.most_recent_signal))
+        return FrozenConjunction(self.name, tst, HashDict(self.most_recent_signal))
 
     def handle_pulse(self, pulse: Pulse, from_module: str) -> list[Signal]:
         """Handle pulse for conjunction."""
@@ -142,7 +154,7 @@ class Broadcast(Module):
 
     name = "broadcaster"
 
-    @cache
+    @cache  # pylint: disable=method-cache-max-size-none
     def handle_pulse(self, pulse: Pulse, _: str) -> list[Signal]:
         return self._send_to_all(pulse)
 
@@ -189,7 +201,6 @@ class Network:
 
     def add_module(self, s: str) -> None:
         """Add a module to this network."""
-        self_needs_memset = True  # Might need to re-set conjunction memory later
         module: Module
         s = s.strip()
         if s.startswith("broadcaster"):
@@ -226,13 +237,10 @@ class Network:
         ]
         signals_sent: list[Signal] = []
 
-        sent_low_to_rx = False
         while signals_to_send:
             sig = signals_to_send[0]
             signals_sent.append(sig)
             signals_to_send = signals_to_send[1:]
-            if sig.to == "rx" and sig.pulse == Pulse.LOW:
-                sent_low_to_rx = True
             new_signals = self._send_signal(sig)
             for new_sig in new_signals:
                 signals_to_send.append(new_sig)
@@ -249,7 +257,7 @@ class Network:
             return []
         return self.modules[sig.to].handle_pulse(sig.pulse, sig.fr)
 
-    def count_pulses_sent(self, push_n_times=1000) -> int:
+    def count_pulses_sent(self, push_n_times: int = 1000) -> int:
         """Count pulses sent by pushing the button N times."""
 
         for _ in range(push_n_times):
@@ -334,7 +342,7 @@ def parse_file(filename: str) -> int:
     return network.lcm_rx_low()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

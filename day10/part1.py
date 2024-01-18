@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 import argparse
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 
 
 class Direction(Enum):
-    North = 1
-    West = 2
-    East = 3
-    South = 4
+    """Compass direction."""
+
+    NORTH = 1
+    WEST = 2
+    EAST = 3
+    SOUTH = 4
 
 
 @dataclass
 class Cell:
+    """One cell in our map/grid/graph/thing."""
+
     shape: str
     is_start: bool = False
     reachable_from_start: bool = False
@@ -42,16 +46,17 @@ class Cell:
 
     def next_dir(self, came_from: Direction) -> Direction:
         """If you came in from X, where do you go out?"""
-        if self.goes_north() and came_from != Direction.North:
-            return Direction.North
-        if self.goes_west() and came_from != Direction.West:
-            return Direction.West
-        if self.goes_east() and came_from != Direction.East:
-            return Direction.East
-        if self.goes_south() and came_from != Direction.South:
-            return Direction.South
+        if self.goes_north() and came_from != Direction.NORTH:
+            return Direction.NORTH
+        if self.goes_west() and came_from != Direction.WEST:
+            return Direction.WEST
+        if self.goes_east() and came_from != Direction.EAST:
+            return Direction.EAST
+        if self.goes_south() and came_from != Direction.SOUTH:
+            return Direction.SOUTH
         raise RuntimeError(
-            f"Not sure how to leave cell of shape {self.shape} when entering from {came_from}"
+            f"Not sure how to leave cell of shape {self.shape} when entering from"
+            f" {came_from}"
         )
 
     @classmethod
@@ -67,18 +72,19 @@ class Cell:
         is_start = char == "S"
         return cls(shape=char, is_start=is_start, reachable_from_start=is_start)
 
-    def _reachable_char(self) -> str:
+    def reachable_char(self) -> str:
         """Print a character depending on reachability."""
         if self.shape == ".":
             return "."
         if self.reachable_from_start:
             return "T"
-        else:
-            return "F"
+        return "F"
 
 
 @dataclass
 class Maze:
+    """A maze: cells + start coordinates."""
+
     cells: list[list[Cell]]
     start_row: int
     start_col: int
@@ -110,7 +116,7 @@ class Maze:
     def print_reachability(self) -> None:
         """Print the reachability status."""
         for row in self.cells:
-            out_row = "".join([c._reachable_char() for c in row])
+            out_row = "".join([c.reachable_char() for c in row])
             print(out_row)
 
     def find_start_shape(self) -> str:
@@ -166,13 +172,13 @@ class Maze:
         start_cell = self.cells[cur_row][cur_col]
         cur_dir: Direction
         if start_cell.goes_north():
-            cur_dir = Direction.North
+            cur_dir = Direction.NORTH
         elif start_cell.goes_west():
-            cur_dir = Direction.West
+            cur_dir = Direction.WEST
         elif start_cell.goes_east():
-            cur_dir = Direction.East
+            cur_dir = Direction.EAST
         elif start_cell.goes_south():
-            cur_dir = Direction.South
+            cur_dir = Direction.SOUTH
         else:
             raise RuntimeError("starting cell does not seem to go anywhere")
         cur_row, cur_col, cur_dir = self._next_idx(cur_row, cur_col, cur_dir)
@@ -202,17 +208,16 @@ class Maze:
     ) -> tuple[int, int, Direction]:
         """Get indexes, and direction, of the next cell to visit."""
         next_dir = self.cells[row_idx][col_idx].next_dir(in_dir)
-        if next_dir == Direction.North:
+        if next_dir == Direction.NORTH:
             # If you go north, you actually "enter" a cell from the south
-            return (row_idx - 1, col_idx, Direction.South)
-        elif next_dir == Direction.West:
-            return (row_idx, col_idx - 1, Direction.East)
-        elif next_dir == Direction.East:
-            return (row_idx, col_idx + 1, Direction.West)
-        elif next_dir == Direction.South:
-            return (row_idx + 1, col_idx, Direction.North)
-        else:
-            raise RuntimeError(f"Unrecognized direction {next_dir}")
+            return (row_idx - 1, col_idx, Direction.SOUTH)
+        if next_dir == Direction.WEST:
+            return (row_idx, col_idx - 1, Direction.EAST)
+        if next_dir == Direction.EAST:
+            return (row_idx, col_idx + 1, Direction.WEST)
+        if next_dir == Direction.SOUTH:
+            return (row_idx + 1, col_idx, Direction.NORTH)
+        raise RuntimeError(f"Unrecognized direction {next_dir}")
 
 
 def parse_file(filename: str) -> int:
@@ -225,7 +230,7 @@ def parse_file(filename: str) -> int:
     return int(reachable_count / 2)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

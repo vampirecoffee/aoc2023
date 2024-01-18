@@ -1,4 +1,5 @@
 """Solution for part 2 of day 05."""
+
 from __future__ import annotations
 
 import argparse
@@ -31,9 +32,10 @@ class MapRange:
 
     def convert(self, src_n: int) -> int:
         """Convert a source n to a destination n."""
-        assert (
-            src_n in self.source_range()
-        ), f"{src_n} is not in range that starts at {self.src_start} with length {self.length}"
+        assert src_n in self.source_range(), (
+            f"{src_n} is not in range that starts at {self.src_start} with length"
+            f" {self.length}"
+        )
         delta = src_n - self.src_start
         return self.dest_start + delta
 
@@ -71,7 +73,7 @@ class Map:
     dest_cat: str = ""  # destination category
     ranges: list[MapRange] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post-init."""
         self.ranges.sort(key=lambda r: r.src_start)
 
@@ -173,7 +175,7 @@ class Almanac:
         """Return the lowest location in the given range."""
         return min(self.seed_to_location(s) for s in tqdm(range(start, start + size)))
 
-    def lowest_location(self):
+    def lowest_location(self) -> int:
         """Get lowest location."""
         return min(
             self.seed_range_to_min_location(start, size)
@@ -220,7 +222,7 @@ def parse_file(filename: str) -> int:
     return almanac.lowest_location()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

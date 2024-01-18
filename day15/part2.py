@@ -3,18 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import functools
 from collections import defaultdict
 from dataclasses import dataclass, field
-import functools
 
 
 @dataclass(frozen=True)
 class Lens:
+    """Lens. It has a label and a focal strength."""
+
     label: str
     focal_length: int
 
-    @property
-    @functools.cache
+    @functools.cached_property
     def box(self) -> int:
         """Box number for this lens."""
         return hash_str(self.label)
@@ -22,6 +23,8 @@ class Lens:
 
 @dataclass
 class Box:
+    """A box. It has lenses in it."""
+
     lenses: list[Lens] = field(default_factory=list)
 
     def remove_lens(self, label: str) -> None:
@@ -31,7 +34,7 @@ class Box:
     def add_or_replace_lens(self, label: str, focal_length: int) -> None:
         """Add or replace a lens (the = operation)."""
         lens = Lens(label=label, focal_length=focal_length)
-        for i in range(0, len(self.lenses)):
+        for i in range(0, len(self.lenses)):  # pylint: disable=consider-using-enumerate
             if self.lenses[i].label == label:
                 self.lenses[i] = lens
                 return
@@ -90,7 +93,7 @@ def parse_file(filename: str) -> int:
     raise RuntimeError("how did you even get here")
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -89,7 +89,7 @@ def file_to_network(filename: str) -> Network:
     return network
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

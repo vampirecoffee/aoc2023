@@ -10,6 +10,8 @@ from tqdm import tqdm
 
 
 class Dir(Enum):
+    """Direction."""
+
     RIGHT = 0
     DOWN = 1
     LEFT = 2
@@ -20,17 +22,18 @@ def go(row: int, col: int, in_dir: Dir) -> tuple[int, int]:
     """Coordinates that are one step in `in_dir` from the given row/col index pair."""
     if in_dir == Dir.RIGHT:
         return (row, col + 1)
-    elif in_dir == Dir.LEFT:
+    if in_dir == Dir.LEFT:
         return (row, col - 1)
-    elif in_dir == Dir.UP:
+    if in_dir == Dir.UP:
         return (row - 1, col)
-    elif in_dir == Dir.DOWN:
+    if in_dir == Dir.DOWN:
         return (row + 1, col)
-    else:
-        raise ValueError(f"Unrecognized direction {in_dir}")
+    raise ValueError(f"Unrecognized direction {in_dir}")
 
 
 class CellType(Enum):
+    """Type of cell - empty or mirror."""
+
     EMPTY = "."
     MIRROR_TILT_RIGHT = "/"
     MIRROR_TILT_LEFT = "\\"
@@ -42,28 +45,26 @@ def _mirror_tilt_right(travel_dir: Dir) -> Dir:
     """Beam enters a / mirror traveling in a direction. How does it bounce?"""
     if travel_dir == Dir.RIGHT:
         return Dir.UP
-    elif travel_dir == Dir.DOWN:
+    if travel_dir == Dir.DOWN:
         return Dir.LEFT
-    elif travel_dir == Dir.LEFT:
+    if travel_dir == Dir.LEFT:
         return Dir.DOWN
-    elif travel_dir == Dir.UP:
+    if travel_dir == Dir.UP:
         return Dir.RIGHT
-    else:
-        raise ValueError(f"Unrecognized direction {travel_dir}")
+    raise ValueError(f"Unrecognized direction {travel_dir}")
 
 
 def _mirror_tilt_left(travel_dir: Dir) -> Dir:
     """Beam enters a \\ mirror traveling in a direction. How does it bounce?"""
     if travel_dir == Dir.RIGHT:
         return Dir.DOWN
-    elif travel_dir == Dir.DOWN:
+    if travel_dir == Dir.DOWN:
         return Dir.RIGHT
-    elif travel_dir == Dir.LEFT:
+    if travel_dir == Dir.LEFT:
         return Dir.UP
-    elif travel_dir == Dir.UP:
+    if travel_dir == Dir.UP:
         return Dir.LEFT
-    else:
-        raise ValueError(f"Unrecognized direction {travel_dir}")
+    raise ValueError(f"Unrecognized direction {travel_dir}")
 
 
 @dataclass
@@ -80,7 +81,9 @@ class Cell:
         """Is this cell energized?"""
         return any(en for en in self.energized_from.values())
 
-    def beam(self, travel_dir: Dir) -> list[Dir]:
+    def beam(  # pylint: disable=too-many-return-statements
+        self, travel_dir: Dir
+    ) -> list[Dir]:  # pylint: disable=too-many-return-statements
         """Beam travels in - where does it go?"""
         if self.energized_from[travel_dir]:
             return []
@@ -89,26 +92,23 @@ class Cell:
         if self.contents == CellType.EMPTY:
             return [travel_dir]
 
-        elif self.contents == CellType.MIRROR_TILT_RIGHT:
+        if self.contents == CellType.MIRROR_TILT_RIGHT:
             return [_mirror_tilt_right(travel_dir)]
 
-        elif self.contents == CellType.MIRROR_TILT_LEFT:
+        if self.contents == CellType.MIRROR_TILT_LEFT:
             return [_mirror_tilt_left(travel_dir)]
 
-        elif self.contents == CellType.SPLITTER_VERT:
+        if self.contents == CellType.SPLITTER_VERT:
             if travel_dir in (Dir.UP, Dir.DOWN):
                 return [travel_dir]
-            else:
-                return [Dir.UP, Dir.DOWN]
+            return [Dir.UP, Dir.DOWN]
 
-        elif self.contents == CellType.SPLITTER_HORIZ:
+        if self.contents == CellType.SPLITTER_HORIZ:
             if travel_dir in (Dir.LEFT, Dir.RIGHT):
                 return [travel_dir]
-            else:
-                return [Dir.LEFT, Dir.RIGHT]
+            return [Dir.LEFT, Dir.RIGHT]
 
-        else:
-            raise ValueError(f"Unrecognized travel dir {travel_dir}")
+        raise ValueError(f"Unrecognized travel dir {travel_dir}")
 
     def reset(self) -> None:
         """Reset this cell."""
@@ -117,6 +117,8 @@ class Cell:
 
 @dataclass(frozen=True)
 class Beam:
+    """A beam. Pew pew."""
+
     row: int
     col: int
     going: Dir
@@ -134,20 +136,17 @@ class Floor:
         cell_types = [CellType(char) for char in row]
         cell_row = [Cell(ct) for ct in cell_types]
         self.tiles.append(cell_row)
-        return
 
     def valid_indexes(self, row: int, col: int) -> bool:
         """Are these valid indexes for this floor?"""
-        return all(
-            (
-                row in range(0, len(self.tiles)),
-                col in range(0, len(self.tiles[0])),
-            )
-        )
+        return all((
+            row in range(0, len(self.tiles)),
+            col in range(0, len(self.tiles[0])),
+        ))
 
     def reset(self) -> None:
         """Reset the floor."""
-        for i in range(len(self.tiles)):
+        for i in range(len(self.tiles)):  # pylint: disable=consider-using-enumerate
             for j in range(len(self.tiles[0])):
                 self.tiles[i][j].reset()
 
@@ -237,7 +236,7 @@ def parse_file(filename: str) -> int:
     return floor.any_start()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

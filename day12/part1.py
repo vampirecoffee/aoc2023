@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import itertools
 from copy import deepcopy
 from dataclasses import dataclass
-from enum import Enum
-import itertools
-
 
 UNKNOWN = "?"
 OPERATIONAL = "."
@@ -16,6 +14,8 @@ DAMAGED = "#"
 
 @dataclass
 class Row:
+    """One row in our records."""
+
     row: str
     groups: list[int]
 
@@ -27,6 +27,7 @@ class Row:
         return Row(row=row, groups=groups)
 
     def count_arrangements(self) -> int:
+        """Number of possible valid arrangements in this row."""
         count = 0
         how_many_unknown = sum(c == UNKNOWN for c in self.row)
         for new_combo in itertools.product(
@@ -56,7 +57,7 @@ def parse_file(filename: str) -> int:
     return the_sum
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

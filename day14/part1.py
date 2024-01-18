@@ -1,3 +1,5 @@
+"""Part 1 of solution for day 14."""
+
 from __future__ import annotations
 
 import argparse
@@ -36,35 +38,36 @@ def tilt(column: list[str]) -> int:
 
     if not cube_indexes:
         return score_tilted_segment(column, len(column))
-    else:
-        out = 0
-        cube_indexes.append(len(column) + 2)
-        cube_indexes = [-1] + cube_indexes
+    # Otherwise ...
+    out = 0
+    cube_indexes.append(len(column) + 2)
+    cube_indexes = [-1] + cube_indexes
 
-        for i in range(len(cube_indexes) - 1):
-            start_idx = cube_indexes[i]
-            end_idx = cube_indexes[i + 1]
-            if start_idx == -1:
-                substr = column[0:end_idx]
-            else:
-                substr = column[start_idx:end_idx]
-            largest_idx_in_segment = len(column) - start_idx - 1
-            out += score_tilted_segment(substr, largest_idx_in_segment)
+    for i in range(len(cube_indexes) - 1):
+        start_idx = cube_indexes[i]
+        end_idx = cube_indexes[i + 1]
+        if start_idx == -1:
+            substr = column[0:end_idx]
+        else:
+            substr = column[start_idx:end_idx]
+        largest_idx_in_segment = len(column) - start_idx - 1
+        out += score_tilted_segment(substr, largest_idx_in_segment)
 
-        return out
+    return out
 
 
 def parse_file(filename: str) -> int:
+    """Parse file and solve problem."""
     platform = read_input(filename)
     out = 0
-    for i, col in enumerate(platform):
+    for col in platform:
         t = tilt(col)
         print("col", "".join(col), "sum", t)
         out += t
     return out
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

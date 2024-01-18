@@ -33,7 +33,7 @@ def parse_file(filename: str) -> int:
     raise RuntimeError("how did you even get here")
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -88,7 +88,7 @@ def sum_game_powers_in_file(filename: str) -> int:
     return sum_game_powers
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

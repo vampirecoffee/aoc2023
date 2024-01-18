@@ -1,14 +1,16 @@
+"""Part 2 of solution for day 22."""
+
 from __future__ import annotations
 
+import argparse
+import functools
+import itertools
+import math
+import string
+from collections import defaultdict
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional
-import functools
-from copy import deepcopy
-import math
-from collections import defaultdict
-import argparse
-import itertools
-import string
 
 # Important note: the "ground" is the xy plane and up/down is the z-axis
 # Also important: a brick at z=1 is "on the ground"
@@ -16,6 +18,8 @@ import string
 
 @dataclass(frozen=True)
 class Point3D:
+    """A point in 3D space."""
+
     x: int
     y: int
     z: int
@@ -34,7 +38,7 @@ class Point3D:
         z_diff = (self.z - other.z) ** 2
         return math.sqrt(x_diff + y_diff + z_diff)
 
-    def drop(self, by=1) -> Point3D:
+    def drop(self, by: int = 1) -> Point3D:
         """Return a new Point3D that is `by` lower (on the z-axis) than this one."""
         return Point3D(x=self.x, y=self.y, z=self.z - by)
 
@@ -44,6 +48,8 @@ SEPARATOR = r"~"
 
 @dataclass(frozen=True)
 class Brick:
+    """A brick. It has two ends (points in space) and a name."""
+
     end1: Point3D
     end2: Point3D
     name: str = field(default_factory=str, compare=False)
@@ -57,11 +63,12 @@ class Brick:
         assert any((same_x and same_y, same_x and same_z, same_y and same_z))
 
     @classmethod
-    def from_str(cls, s: str, name="") -> Brick:
+    def from_str(cls, s: str, name: str = "") -> Brick:
         """Create a brick from an input string."""
         if not SEPARATOR in s:
             raise ValueError(
-                f"Cannot create brick from string `{s}` that does not contain {SEPARATOR}"
+                f"Cannot create brick from string `{s}` that does not contain"
+                f" {SEPARATOR}"
             )
         end1, end2 = (Point3D.from_str(part) for part in s.split(SEPARATOR))
         return cls(end1, end2, name=name)
@@ -118,13 +125,11 @@ class Brick:
 
     def contains(self, point: Point3D) -> bool:
         """Is this point 'inside' the brick?"""
-        return all(
-            (
-                (self.lowest_x <= point.x and point.x <= self.highest_x),
-                (self.lowest_y <= point.y and point.y <= self.highest_y),
-                (self.lowest_z <= point.z and point.z <= self.highest_z),
-            )
-        )
+        return all((
+            (self.lowest_x <= point.x and point.x <= self.highest_x),
+            (self.lowest_y <= point.y and point.y <= self.highest_y),
+            (self.lowest_z <= point.z and point.z <= self.highest_z),
+        ))
 
     def _shares_x(self, other: Brick) -> bool:
         """Do these bricks overlap in their x-coordinates?"""
@@ -140,7 +145,7 @@ class Brick:
 
     def in_row(self, z: int) -> bool:
         """Is this brick 'in' row Z?"""
-        return (self.lowest_z <= z) and (z <= self.highest_z)
+        return self.lowest_z <= z <= self.highest_z
 
     def supports(self, other: Brick) -> bool:
         """Does this brick support other?"""
@@ -154,7 +159,7 @@ class Brick:
             return False
         return True
 
-    def drop(self, by=1) -> Brick:
+    def drop(self, by: int = 1) -> Brick:
         """Drop this brick down N steps on the Z-axis."""
         end1 = self.end1.drop(by)
         end2 = self.end2.drop(by)
@@ -240,6 +245,7 @@ class BrickColl:
     bricks_by_z: defaultdict[int, set[Brick]] = field(
         default_factory=lambda: defaultdict(set)
     )
+    _bricks_before_drop: set[Brick] = field(default_factory=set)
 
     @property
     def names(self) -> set[str]:
@@ -296,7 +302,8 @@ class BrickColl:
             )
         if b.name in self.names:
             raise ValueError(
-                f"Cannot add brick {b} to this collection because we already have a brick named {b.name}"
+                f"Cannot add brick {b} to this collection because we already have a"
+                f" brick named {b.name}"
             )
         self.bricks_by_z[b.lowest_z].add(b)
 
@@ -495,7 +502,7 @@ def parse_file(filename: str) -> int:
     return bc.count_total_falling()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

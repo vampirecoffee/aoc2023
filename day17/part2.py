@@ -1,23 +1,19 @@
 """Crucible problem."""
 
 from __future__ import annotations
-from copy import deepcopy
-import functools
-from typing import Optional
-from dataclasses import dataclass, field
-from typing import Any
-from collections import defaultdict
-import math
-import itertools
-import enum
-import argparse
 
-# I have these library stubs installed but ale can't find them??? lol
-from tqdm import tqdm  # type: ignore[import-untyped]
+import argparse
+import enum
+import functools
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @enum.unique
 class Dir(enum.Enum):
+    """Direction."""
+
     LEFT = 1
     RIGHT = 2
     UP = 3
@@ -27,34 +23,31 @@ class Dir(enum.Enum):
         """Return this direction as a character: >, <, ^, or v."""
         if self == Dir.LEFT:
             return "<"
-        elif self == Dir.RIGHT:
+        if self == Dir.RIGHT:
             return ">"
-        elif self == Dir.UP:
+        if self == Dir.UP:
             return "^"
-        elif self == Dir.DOWN:
+        if self == Dir.DOWN:
             return "v"
-        else:
-            raise ValueError(f"Unrecognized direction {self}")
+        raise ValueError(f"Unrecognized direction {self}")
 
     def reverse(self) -> Dir:
         """Return the opposite of this direction."""
         if self == Dir.LEFT:
             return Dir.RIGHT
-        elif self == Dir.RIGHT:
+        if self == Dir.RIGHT:
             return Dir.LEFT
-        elif self == Dir.UP:
+        if self == Dir.UP:
             return Dir.DOWN
-        elif self == Dir.DOWN:
+        if self == Dir.DOWN:
             return Dir.UP
-        else:
-            raise ValueError(f"Unrecognized direction {self}")
+        raise ValueError(f"Unrecognized direction {self}")
 
     def turns(self) -> tuple[Dir, Dir]:
         """Return valid 'turns'."""
         if self in (Dir.LEFT, Dir.RIGHT):
             return (Dir.UP, Dir.DOWN)
-        else:
-            return (Dir.LEFT, Dir.RIGHT)
+        return (Dir.LEFT, Dir.RIGHT)
 
 
 @functools.cache
@@ -65,18 +58,19 @@ def take_step(row: int, col: int, step_dir: Dir) -> tuple[int, int]:
     assert isinstance(step_dir, Dir)
     if step_dir == Dir.LEFT:
         return (row, col - 1)
-    elif step_dir == Dir.RIGHT:
+    if step_dir == Dir.RIGHT:
         return (row, col + 1)
-    elif step_dir == Dir.UP:
+    if step_dir == Dir.UP:
         return (row - 1, col)
-    elif step_dir == Dir.DOWN:
+    if step_dir == Dir.DOWN:
         return (row + 1, col)
-    else:
-        raise ValueError(f"Unrecognized direction {step_dir}")
+    raise ValueError(f"Unrecognized direction {step_dir}")
 
 
 @dataclass(frozen=True)
 class State:
+    """State: where we are, dir, how long we've gone that dir in a row."""
+
     row: int
     col: int
     going: Dir
@@ -85,6 +79,8 @@ class State:
 
 @dataclass
 class City:
+    """City that we're traveling across."""
+
     grid: list[list[int]] = field(default_factory=list)
     height: int = 0
     width: int = 0
@@ -124,13 +120,11 @@ class City:
         if new_row >= self.height or new_col >= self.width:
             return None
         new_cost = cost + self.grid[new_row][new_col]
-        if all(
-            (
-                new_row == self.end_row,
-                new_col == self.end_col,
-                state.distance >= 4,
-            )
-        ):
+        if all((
+            new_row == self.end_row,
+            new_col == self.end_col,
+            state.distance >= 4,
+        )):
             print("the end!", new_cost)
             return new_cost
         new_state = State(new_row, new_col, state.going, state.distance)
@@ -182,7 +176,7 @@ def parse_file(filename: str) -> int:
     return res
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

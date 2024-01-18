@@ -1,8 +1,10 @@
+"""Solution for day 14 part 2."""
+
 from __future__ import annotations
 
 import argparse
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
 
 def read_input(filename: str) -> list[list[str]]:
@@ -25,6 +27,7 @@ def tilt_north(platform: list[list[str]]) -> list[list[str]]:
 
 
 def tilt_south(platform: list[list[str]]) -> list[list[str]]:
+    """Tilt the platform south."""
     platform.reverse()
     platform = tilt_north(platform)
     platform.reverse()
@@ -34,7 +37,7 @@ def tilt_south(platform: list[list[str]]) -> list[list[str]]:
 def tilt_west(platform: list[list[str]]) -> list[list[str]]:
     """Tilt the platform west."""
     for x in range(len(platform[0])):
-        for y in range(len(platform)):
+        for y in range(len(platform)):  # pylint: disable=consider-using-enumerate
             if platform[y][x] == "O":
                 platform[y][x] = "."
                 i = x - 1
@@ -46,15 +49,16 @@ def tilt_west(platform: list[list[str]]) -> list[list[str]]:
 
 def tilt_east(platform: list[list[str]]) -> list[list[str]]:
     """Tilt the platform east."""
-    for i in range(len(platform)):
+    for i in range(len(platform)):  # pylint: disable=consider-using-enumerate
         platform[i].reverse()
     platform = tilt_west(platform)
-    for i in range(len(platform)):
+    for i in range(len(platform)):  # pylint: disable=consider-using-enumerate
         platform[i].reverse()
     return platform
 
 
 def score(platform: list[list[str]]) -> int:
+    """Score the platform."""
     out = 0
     for y, row in enumerate(platform):
         for char in row:
@@ -64,6 +68,7 @@ def score(platform: list[list[str]]) -> int:
 
 
 def make_state(platform: list[list[str]]) -> str:
+    """Turn the platform into a printable string."""
     rows_are_strs = ["".join(row) for row in platform]
     return "\n".join(rows_are_strs)
 
@@ -77,7 +82,7 @@ def spin_once(platform: list[list[str]]) -> list[list[str]]:
     return platform
 
 
-def spin(platform: list[list[str]], n=1000000000) -> int:
+def spin(platform: list[list[str]], n: int = 1000000000) -> int:
     """Spin the platform (tilt north, west, south, east) N times, then score."""
 
     spin_count: int = 0
@@ -111,11 +116,12 @@ def spin(platform: list[list[str]], n=1000000000) -> int:
 
 
 def parse_file(filename: str) -> int:
+    """Parse file and solve problem."""
     platform = read_input(filename)
     return spin(platform)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

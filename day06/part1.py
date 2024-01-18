@@ -71,7 +71,7 @@ def parse_file(filename: str) -> int:
     return ways_to_beat_all(races)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

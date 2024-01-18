@@ -55,7 +55,7 @@ def score_file(filename: str) -> int:
     return scratchcard_count
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

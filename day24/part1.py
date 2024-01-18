@@ -1,4 +1,5 @@
 """Part 1 of solution for day 24."""
+
 from __future__ import annotations
 
 import argparse
@@ -50,7 +51,7 @@ class Hailstone:
         )
         return next_pos
 
-    def _denom(self, other) -> float:
+    def _denom(self, other: Hailstone) -> float:
         """Get the denominator of the equation used to determine intersection coordinates."""
         # Normalizing to the names used by wikipedia. lol, lmao, etc
         # see: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
@@ -116,16 +117,14 @@ def count_intersections_in_test_area(
     for h1, h2 in itertools.combinations(stones, 2):
         if h1.intersects_with_path(h2):
             x, y = h1.intersect_coords(h2)
-            if all(
-                (
-                    not h1.in_the_past(x, y),
-                    not h2.in_the_past(x, y),
-                    min_pos <= x,
-                    min_pos <= y,
-                    x <= max_pos,
-                    y <= max_pos,
-                )
-            ):
+            if all((
+                not h1.in_the_past(x, y),
+                not h2.in_the_past(x, y),
+                min_pos <= x,
+                min_pos <= y,
+                x <= max_pos,
+                y <= max_pos,
+            )):
                 count += 1
     return count
 
@@ -144,7 +143,7 @@ def parse_file(filename: str) -> int:
     return count_intersections_in_test_area(stones, min_pos, max_pos)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

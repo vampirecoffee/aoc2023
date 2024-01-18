@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import argparse
-from collections import defaultdict
+import re
 from dataclasses import dataclass
 from enum import Enum
-import re
 from typing import Optional, Union
 
 
 class Status(Enum):
-    Reject = 0
-    Accept = 1
+    """Status of a part (accepted or rejected)"""
+
+    REJECT = 0
+    ACCEPT = 1
 
 
 _part_re = re.compile(r"\{x=(\d+),m=(\d+),a=(\d+),s=(\d+)\}")
@@ -20,6 +21,8 @@ _part_re = re.compile(r"\{x=(\d+),m=(\d+),a=(\d+),s=(\d+)\}")
 
 @dataclass(frozen=True)
 class Part:
+    """A part, with values for its x,m,a, and s scores."""
+
     x: int
     m: int
     a: int
@@ -39,6 +42,7 @@ class Part:
 
     @property
     def rating(self) -> int:
+        """The 'rating' for this part."""
         return self.x + self.m + self.a + self.s
 
 
@@ -50,7 +54,7 @@ class Condition:
     gt_lt: str
     val: int
 
-    def matches(self, part) -> bool:
+    def matches(self, part: Part) -> bool:
         """Does this condition match this part?"""
         attr_val: int = 0
         if self.attr == "x":
@@ -66,8 +70,8 @@ class Condition:
 
         if self.gt_lt == "<":
             return attr_val < self.val
-        else:
-            return attr_val > self.val
+        # Otherwise, self.gt_lt should be >
+        return attr_val > self.val
 
 
 _rule_re = re.compile(r"(x|m|a|s)(<|>)(\d+):(\w+)")
@@ -75,6 +79,8 @@ _rule_re = re.compile(r"(x|m|a|s)(<|>)(\d+):(\w+)")
 
 @dataclass(frozen=True)
 class Rule:
+    """A rule - part of a workflow."""
+
     cond: Optional[Condition]
     _send_to: str  # workflow to send matching parts to
 
@@ -82,11 +88,10 @@ class Rule:
     def send_to(self) -> Union[Status, str]:
         """Where to send this."""
         if self._send_to == "R":
-            return Status.Reject
-        elif self._send_to == "A":
-            return Status.Accept
-        else:
-            return self._send_to
+            return Status.REJECT
+        if self._send_to == "A":
+            return Status.ACCEPT
+        return self._send_to
 
     @classmethod
     def from_str(cls, s_in: str) -> Rule:
@@ -101,11 +106,11 @@ class Rule:
             cond = Condition(attr, gt_lt, val)
             send_to = match.group(4)
             return cls(cond, send_to)
-        else:
-            s_in = s_in.strip()
-            return cls(cond=None, _send_to=s_in)
+        # Otherwise...
+        s_in = s_in.strip()
+        return cls(cond=None, _send_to=s_in)
 
-    def applies_to(self, part) -> bool:
+    def applies_to(self, part: Part) -> bool:
         """Does this rule apply to this part?"""
         if self.cond is None:
             return True
@@ -117,6 +122,8 @@ _workflow_re = re.compile(r"(\w+)\{(.*)\}")
 
 @dataclass(frozen=True)
 class Workflow:
+    """A workflow: name + list of rules to apply, in order."""
+
     name: str
     rules: list[Rule]
 
@@ -130,7 +137,7 @@ class Workflow:
         rules = [Rule.from_str(r) for r in rule_str.split(",")]
         return cls(name, rules)
 
-    def apply(self, part) -> Union[Status, str]:
+    def apply(self, part: Part) -> Union[Status, str]:
         """Apply a workflow to a part."""
         for r in self.rules:
             if r.applies_to(part):
@@ -152,7 +159,7 @@ def score_parts(workflows: dict[str, Workflow], parts: list[Part]) -> int:
     """Score all accepted parts."""
     out = 0
     for p in parts:
-        if apply_workflows(workflows, p) == Status.Accept:
+        if apply_workflows(workflows, p) == Status.ACCEPT:
             print("accepting part", p)
             out += p.rating
         else:
@@ -182,7 +189,7 @@ def parse_file(filename: str) -> int:
     return score_parts(workflows, parts)
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

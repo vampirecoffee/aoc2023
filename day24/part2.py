@@ -1,4 +1,5 @@
 """Part 2 of Day 24 solution."""
+
 from __future__ import annotations
 
 import argparse
@@ -54,7 +55,7 @@ class Hailstone:
         return next_pos
 
 
-def find_rock(h1: Hailstone, h2: Hailstone, h3: Hailstone):
+def find_rock(h1: Hailstone, h2: Hailstone, h3: Hailstone) -> Hailstone:
     """Find the position and velocity of our buddy Rock."""
 
     unknowns = sp.symbols("x y z dx dy dz t1 t2 t3")
@@ -99,7 +100,7 @@ def parse_file(filename: str) -> int:
     return rock.pos.x + rock.pos.y + rock.pos.z
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

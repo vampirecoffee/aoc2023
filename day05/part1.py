@@ -1,4 +1,5 @@
 """Solution for part 1 of day 05."""
+
 from __future__ import annotations
 
 import argparse
@@ -29,9 +30,10 @@ class MapRange:
 
     def convert(self, src_n: int) -> int:
         """Convert a source n to a destination n."""
-        assert (
-            src_n in self.source_range()
-        ), f"{src_n} is not in range that starts at {self.src_start} with length {self.length}"
+        assert src_n in self.source_range(), (
+            f"{src_n} is not in range that starts at {self.src_start} with length"
+            f" {self.length}"
+        )
         delta = src_n - self.src_start
         return self.dest_start + delta
 
@@ -53,7 +55,7 @@ class Map:
     dest_cat: str = ""  # destination category
     ranges: list[MapRange] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post-init."""
         self.ranges.sort(key=lambda r: r.src_start)
 
@@ -149,7 +151,7 @@ def parse_file(filename: str) -> int:
     return almanac.lowest_location()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

@@ -66,10 +66,10 @@ def summarize(pattern: tuple[str, ...]) -> int:
 
 
 def flip_char(char: str) -> str:
+    """Flip one character."""
     if char == ".":
         return "#"
-    else:
-        return "."
+    return "."
 
 
 def flip(pattern: tuple[str, ...], row: int, col: int) -> tuple[str, ...]:
@@ -117,7 +117,7 @@ def parse_file(filename: str) -> int:
     return total
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

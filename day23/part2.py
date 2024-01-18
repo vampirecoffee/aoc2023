@@ -1,8 +1,8 @@
 """Part 2 of solution for day 23."""
+
 from __future__ import annotations
 
 import argparse
-import functools
 import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -171,11 +171,9 @@ class Map:
         nodes: defaultdict[Point, list[tuple[Point, int]]] = defaultdict(list)
         start_point = self.start_point
         end_point = self.end_point
-        queue = deque(
-            [
-                (start_point, Dir.DOWN),
-            ]
-        )
+        queue = deque([
+            (start_point, Dir.DOWN),
+        ])
         while len(queue) > 0:
             from_node, cur_dir = queue.pop()
             if (from_node, cur_dir) in explored:
@@ -265,7 +263,7 @@ class Map:
             print("".join(row_out))
 
 
-def parse_file(filename) -> int:
+def parse_file(filename: str) -> int:
     """Parse file and solve problem."""
     m = Map()
     with open(filename) as f:
@@ -275,7 +273,7 @@ def parse_file(filename) -> int:
     return m.take_a_hike()
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

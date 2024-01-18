@@ -57,7 +57,6 @@ def is_horiz_reflection(
         bottom_idx += 1
     print("top idx", top_idx, "is too small; or else", bottom_idx, "is too big")
     return want_to_consider_row in range(top_idx + 1, bottom_idx)
-    return True
 
 
 @functools.cache
@@ -84,10 +83,10 @@ def summarize(pattern: tuple[str, ...], row: int, col: int) -> int:
 
 
 def flip_char(char: str) -> str:
+    """Flip one character."""
     if char == ".":
         return "#"
-    else:
-        return "."
+    return "."
 
 
 def flip(pattern: tuple[str, ...], row: int, col: int) -> tuple[str, ...]:
@@ -138,7 +137,7 @@ def parse_file(filename: str) -> int:
     return total
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")

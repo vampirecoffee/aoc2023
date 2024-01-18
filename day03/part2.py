@@ -1,4 +1,5 @@
 """Solution for part 1 of the Gear Ratios problem."""
+
 from __future__ import annotations
 
 import argparse
@@ -16,7 +17,7 @@ class Point:
     x: int
     y: int
 
-    def adjacent_points(self, max_x=10, max_y=10) -> set[Point]:
+    def adjacent_points(self, max_x: int = 10, max_y: int = 10) -> set[Point]:
         """All points that are 'next to' this one."""
         valid_x: list[int] = [self.x]
         if self.x > 0:
@@ -62,7 +63,7 @@ class Number:
             end_x += incr_x_by
         return cls(n=int(str_n), start_x=start_x, end_x=end_x, y=y)
 
-    def adjacent_points(self, max_x=10, max_y=10) -> set[Point]:
+    def adjacent_points(self, max_x: int = 10, max_y: int = 10) -> set[Point]:
         """Get all points adjacent to this number."""
         this_number_points = [Point(x, self.y) for x in range(self.start_x, self.end_x)]
         out: set[Point] = set()
@@ -169,7 +170,8 @@ def parse_schematic(filename: str) -> int:
         line_len = len(line.strip())
         if line_len != 0 and max_x != 0 and line_len != max_x + 1:
             raise RuntimeError(
-                f"this line has a length of {line_len} which is different from {max_x+1}"
+                f"this line has a length of {line_len} which is different from"
+                f" {max_x+1}"
             )
         max_x = line_len - 1
     numbers_by_line: defaultdict[int, list[Number]] = defaultdict(list)
@@ -186,7 +188,7 @@ def parse_schematic(filename: str) -> int:
     return sum_of_ratios
 
 
-def main():
+def main() -> None:
     """Main function."""
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
